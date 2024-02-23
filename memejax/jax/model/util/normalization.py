@@ -3,7 +3,7 @@ from typing import cast
 import numpy as np
 import numpy.typing as npt
 
-from memejax.jnp import np_pct_diff
+from memejax.jax.jnp import np_pct_diff
 
 
 def np_normalize_pct_diff(data: npt.NDArray) -> npt.NDArray:

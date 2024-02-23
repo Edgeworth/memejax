@@ -5,7 +5,7 @@ import jax.numpy as jnp
 from chex import assert_shape
 from jax import Array
 
-from memejax.model.util.initializers import initialize_identity
+from memejax.jax.model.util.initializers import initialize_identity
 
 
 # Based on this paper: https://doi.org/10.1007/s11265-020-01624-0

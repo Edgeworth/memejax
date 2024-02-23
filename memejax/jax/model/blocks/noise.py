@@ -9,8 +9,8 @@ import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
-from memejax.common import ArrayOrMap, apply_arrayormap
-from memejax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.util import ArrayOrMap, apply_arrayormap
 
 
 @dataclass_json(undefined=Undefined.RAISE)

@@ -7,7 +7,7 @@ from flax import struct
 from jax import Array
 from jax.typing import ArrayLike
 
-from memejax.jnp import ArrayMap
+from memejax.jax.jnp import ArrayMap
 
 
 @struct.dataclass

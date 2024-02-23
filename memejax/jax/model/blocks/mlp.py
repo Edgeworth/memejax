@@ -9,10 +9,10 @@ from chex import assert_shape
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
-from memejax.common import ArrayOrMap, apply_arrayormap
-from memejax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
-from memejax.model.blocks.cfg import ModelCfg, Variable
-from memejax.model.layers.mlp import MlpLayer
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.model.blocks.cfg import ModelCfg, Variable
+from memejax.jax.model.layers.mlp import MlpLayer
+from memejax.jax.util import ArrayOrMap, apply_arrayormap
 
 
 @dataclass_json(undefined=Undefined.RAISE)

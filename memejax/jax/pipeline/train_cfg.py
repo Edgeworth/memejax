@@ -11,7 +11,7 @@ import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Exclude, Undefined, config, dataclass_json
 from optax import ScalarOrSchedule
 
-from memejax.hyperparam.trial import (
+from memejax.jax.hyperparam.trial import (
     OptunaParameterable,
     OptunaSearchCfg,
     suggest_enum,

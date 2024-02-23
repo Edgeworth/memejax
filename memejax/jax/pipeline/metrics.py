@@ -9,7 +9,7 @@ from flax.core.scope import VariableDict
 from jax import Array
 from jax.typing import ArrayLike
 
-from memejax.jnp import (
+from memejax.jax.jnp import (
     ArrayMap,
     ModelOutput,
     jnp_geometric_mean,

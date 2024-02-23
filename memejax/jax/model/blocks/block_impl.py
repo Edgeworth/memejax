@@ -4,18 +4,18 @@ from typing import TypeAlias
 import flax.linen as nn
 from dataclasses_json import DataClassJsonMixin
 
-from memejax.model.blocks.cfg import BlkKind, EmptyBlkCfg
-from memejax.model.blocks.compound import CompoundBlk, CompoundBlkCfg
-from memejax.model.blocks.conv import ConvBlk, ConvBlkCfg
-from memejax.model.blocks.encoder import EncoderBlk, EncoderBlkCfg
-from memejax.model.blocks.loss import (
+from memejax.jax.model.blocks.cfg import BlkKind, EmptyBlkCfg
+from memejax.jax.model.blocks.compound import CompoundBlk, CompoundBlkCfg
+from memejax.jax.model.blocks.conv import ConvBlk, ConvBlkCfg
+from memejax.jax.model.blocks.encoder import EncoderBlk, EncoderBlkCfg
+from memejax.jax.model.blocks.loss import (
     LossCrossEntropyIntegerBlk,
     LossKLDivergenceBlk,
     LossLogPredictionCfg,
     LossMSEBlk,
     LossPredictionCfg,
 )
-from memejax.model.blocks.manipulation import (
+from memejax.jax.model.blocks.manipulation import (
     ConcatBlk,
     ConcatBlkCfg,
     NewAxisBlk,
@@ -25,10 +25,10 @@ from memejax.model.blocks.manipulation import (
     ReshapeBlkCfg,
     SoftmaxBlk,
 )
-from memejax.model.blocks.mlp import MlpBlk, MlpBlkCfg
-from memejax.model.blocks.noise import GaussianNoiseBlk, GaussianNoiseBlkCfg
-from memejax.model.blocks.posemb import PosEmbBlk, PosEmbBlkCfg
-from memejax.model.blocks.transformer import TransformerBlk, TransformerBlkCfg
+from memejax.jax.model.blocks.mlp import MlpBlk, MlpBlkCfg
+from memejax.jax.model.blocks.noise import GaussianNoiseBlk, GaussianNoiseBlkCfg
+from memejax.jax.model.blocks.posemb import PosEmbBlk, PosEmbBlkCfg
+from memejax.jax.model.blocks.transformer import TransformerBlk, TransformerBlkCfg
 
 BlkCfgType: TypeAlias = (
     CompoundBlkCfg

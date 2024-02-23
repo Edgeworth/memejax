@@ -1,7 +1,7 @@
 import flax.linen as nn
 from jax import Array
 
-from memejax.model.blocks.cfg import ModelCfg
+from memejax.jax.model.blocks.cfg import ModelCfg
 
 
 class MlpLayer(nn.Module):

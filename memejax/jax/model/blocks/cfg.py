@@ -9,7 +9,7 @@ import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jinja2 import Template
 
-from memejax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
 
 Variable = Any
 

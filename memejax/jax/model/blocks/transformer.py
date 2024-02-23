@@ -11,11 +11,11 @@ from chex import assert_shape
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
-from memejax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg, suggest_int_exp
-from memejax.jnp import ArrayMap
-from memejax.model.blocks.cfg import ModelCfg, Variable
-from memejax.model.blocks.posemb import PosEmbBlk, PosEmbBlkCfg
-from memejax.model.layers.mlp import MlpLayer
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg, suggest_int_exp
+from memejax.jax.jnp import ArrayMap
+from memejax.jax.model.blocks.cfg import ModelCfg, Variable
+from memejax.jax.model.blocks.posemb import PosEmbBlk, PosEmbBlkCfg
+from memejax.jax.model.layers.mlp import MlpLayer
 
 
 @dataclass_json(undefined=Undefined.RAISE)

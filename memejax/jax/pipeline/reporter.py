@@ -1,6 +1,6 @@
 from clu import metric_writers, periodic_actions
 
-from memejax.pipeline.metrics import (
+from memejax.jax.pipeline.metrics import (
     DeviceMetricDict,
     LocalMetricDict,
     get_local_mdict,
@@ -8,7 +8,7 @@ from memejax.pipeline.metrics import (
     pretty_print_mdict,
     slow_div_mdict,
 )
-from memejax.pipeline.train_cfg import TrainCfg
+from memejax.jax.pipeline.train_cfg import TrainCfg
 
 
 class Reporter:

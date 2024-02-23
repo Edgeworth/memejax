@@ -4,11 +4,11 @@ import flax.linen as nn
 import jax
 import optuna
 
-from memejax.jnp import ModelOutput
-from memejax.pipeline.dataset import Dataset, TrainingData
-from memejax.pipeline.metrics import DeviceMetricDict, MetricsFn, get_local_mdict
-from memejax.pipeline.train_cfg import TrainCfg
-from memejax.pipeline.trainer import Trainer, TrainMeta
+from memejax.jax.jnp import ModelOutput
+from memejax.jax.pipeline.dataset import Dataset, TrainingData
+from memejax.jax.pipeline.metrics import DeviceMetricDict, MetricsFn, get_local_mdict
+from memejax.jax.pipeline.train_cfg import TrainCfg
+from memejax.jax.pipeline.trainer import Trainer, TrainMeta
 
 
 class HyperParameterPipeline:

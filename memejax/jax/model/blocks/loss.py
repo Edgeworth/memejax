@@ -4,9 +4,9 @@ import flax.linen as nn
 import optax
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 
-from memejax.hyperparam.trial import OptunaParameterable
-from memejax.jnp import ArrayMap
-from memejax.pipeline.metrics import (
+from memejax.jax.hyperparam.trial import OptunaParameterable
+from memejax.jax.jnp import ArrayMap
+from memejax.jax.pipeline.metrics import (
     ClfMetrics,
     LogitAccuracyMetric,
     LossMetrics,

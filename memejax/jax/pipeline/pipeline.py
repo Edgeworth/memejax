@@ -7,13 +7,18 @@ import jax
 import orbax.checkpoint as ocp
 from jax import Array
 
-from memejax.jnp import ArrayMap, ModelOutput
-from memejax.pipeline.checkpoint import make_checkpoint_manager
-from memejax.pipeline.dataset import Dataset, TrainingData
-from memejax.pipeline.metrics import DeviceMetricDict, LocalMetricDict, MetricsFn, get_local_mdict
-from memejax.pipeline.reporter import Reporter
-from memejax.pipeline.train_cfg import TrainCfg
-from memejax.pipeline.trainer import Trainer, TrainMeta
+from memejax.jax.jnp import ArrayMap, ModelOutput
+from memejax.jax.pipeline.checkpoint import make_checkpoint_manager
+from memejax.jax.pipeline.dataset import Dataset, TrainingData
+from memejax.jax.pipeline.metrics import (
+    DeviceMetricDict,
+    LocalMetricDict,
+    MetricsFn,
+    get_local_mdict,
+)
+from memejax.jax.pipeline.reporter import Reporter
+from memejax.jax.pipeline.train_cfg import TrainCfg
+from memejax.jax.pipeline.trainer import Trainer, TrainMeta
 
 ExampleFn = Callable[[tuple[TrainingData, ModelOutput], tuple[TrainingData, ModelOutput]], None]
 

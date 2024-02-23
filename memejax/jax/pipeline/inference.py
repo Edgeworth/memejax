@@ -7,9 +7,9 @@ import jax.numpy as jnp
 import tensorflow as tf
 from orbax.export import ExportManager, JaxModule, ServingConfig
 
-from memejax.jnp import ArrayMap, ModelOutput
-from memejax.pipeline.checkpoint import select_checkpoint
-from memejax.pipeline.trainer import Trainer
+from memejax.jax.jnp import ArrayMap, ModelOutput
+from memejax.jax.pipeline.checkpoint import select_checkpoint
+from memejax.jax.pipeline.trainer import Trainer
 
 
 class CkptInference:

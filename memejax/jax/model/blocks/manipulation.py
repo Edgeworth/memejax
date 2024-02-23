@@ -7,9 +7,9 @@ import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
-from memejax.common import ArrayOrMap, apply_arrayormap
-from memejax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
-from memejax.model.blocks.cfg import EmptyBlkCfg
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.model.blocks.cfg import EmptyBlkCfg
+from memejax.jax.util import ArrayOrMap, apply_arrayormap
 
 
 class SoftmaxBlk(nn.Module):

@@ -12,10 +12,10 @@ from dataclasses_json import DataClassJsonMixin, Undefined, config, dataclass_js
 from flax.core.scope import VariableDict
 
 from memejax.common import dataclass_has_field
-from memejax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
-from memejax.jnp import ArrayMap
-from memejax.model.blocks.cfg import BlkKind, ModelCfg
-from memejax.pipeline.metrics import MetricCollection, MetricCollectionMap
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.jnp import ArrayMap
+from memejax.jax.model.blocks.cfg import BlkKind, ModelCfg
+from memejax.jax.pipeline.metrics import MetricCollection, MetricCollectionMap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -37,7 +37,7 @@ class CompoundItem(DataClassJsonMixin):
     is_output: bool = False
 
     def __post_init__(self) -> None:
-        from memejax.model.blocks.block_impl import blk_kind_cfg_class
+        from memejax.jax.model.blocks.block_impl import blk_kind_cfg_class
 
         if isinstance(self.blk_cfg, dict):
             # Work around frozen, but we need hash.
@@ -105,7 +105,7 @@ class CompoundBlk(nn.Module):
         model_output: CompoundBlkData,
         aux: ArrayMap,
     ) -> MetricCollectionMap:
-        from memejax.model.blocks.block_impl import blk_kind_model_class
+        from memejax.jax.model.blocks.block_impl import blk_kind_model_class
 
         metrics = {}
         results = {**model_output, "aux": aux}
@@ -121,7 +121,7 @@ class CompoundBlk(nn.Module):
 
     @nn.compact
     def __call__(self, x: ArrayMap, train: bool) -> CompoundBlkData:
-        from memejax.model.blocks.block_impl import blk_kind_model_class
+        from memejax.jax.model.blocks.block_impl import blk_kind_model_class
 
         ts: TopologicalSorter = TopologicalSorter()
         blks = {blk.name: blk for blk in self.blk_cfg.blks}
