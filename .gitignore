@@ -14,3 +14,5 @@ vis.json
 .vscode
 .*.toml
 .ruff_cache
+*.egg-info
+build/

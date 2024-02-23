@@ -40,13 +40,17 @@ repos:
           [
             chex,
             cloup,
+            clu,
             dataclasses-json,
             flax,
             jax,
             jaxlib,
+            jinja2,
             numpy,
             optax,
             optuna,
             orbax-checkpoint,
             orbax-export,
+            portpicker,
+            typing-extensions,
           ]
