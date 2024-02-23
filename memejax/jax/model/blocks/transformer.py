@@ -12,10 +12,10 @@ from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg, suggest_int_exp
-from memejax.jax.jnp import ArrayMap
 from memejax.jax.model.blocks.cfg import ModelCfg, Variable
 from memejax.jax.model.blocks.posemb import PosEmbBlk, PosEmbBlkCfg
 from memejax.jax.model.layers.mlp import MlpLayer
+from memejax.jax.util import JaxArrayMap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -75,7 +75,7 @@ class TransformerBlk(nn.Module):
     blk_cfg: TransformerBlkCfg
 
     @nn.compact
-    def __call__(self, data: ArrayMap, train: bool) -> Array:
+    def __call__(self, data: JaxArrayMap, train: bool) -> Array:
         cfg = self.cfg
         blk_cfg = self.blk_cfg
 

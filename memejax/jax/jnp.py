@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import cast
 
 import jax
 import jax.numpy as jnp
@@ -7,9 +7,6 @@ import numpy.typing as npt
 from chex import assert_rank
 from jax import Array
 from jax.typing import ArrayLike
-
-ArrayMap = dict[str, Array]
-ModelOutput = Any
 
 
 def jnp_pad_left_edge(arr: Array, size: int) -> Array:

@@ -6,9 +6,9 @@ import jax
 import portpicker
 from jax import Array, config
 
-ArrayMap = dict[str, Array]
-ArrayOrMap = TypeVar("ArrayOrMap", Array, ArrayMap)
-ModelOutput = Any
+JaxArrayMap = dict[str, Array]
+JaxArrayOrMap = TypeVar("JaxArrayOrMap", Array, JaxArrayMap)
+JaxModelOutput = Any
 
 _ENABLE_CHEXIFY = False
 
@@ -46,8 +46,8 @@ def jax_enable_debug(enable: bool = True, check_leaks: bool = False) -> None:
 
 
 def apply_arrayormap(
-    x: ArrayOrMap, train: bool, f: Callable[[str, Array, bool], Array]
-) -> ArrayOrMap:
+    x: JaxArrayOrMap, train: bool, f: Callable[[str, Array, bool], Array]
+) -> JaxArrayOrMap:
     if isinstance(x, dict):
         return {k: f(k, v, train) for k, v in x.items()}
     return f("array", x, train)

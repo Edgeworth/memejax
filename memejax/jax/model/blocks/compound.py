@@ -13,9 +13,9 @@ from flax.core.scope import VariableDict
 
 from memejax.common import dataclass_has_field
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
-from memejax.jax.jnp import ArrayMap
 from memejax.jax.model.blocks.cfg import BlkKind, ModelCfg
 from memejax.jax.pipeline.metrics import MetricCollection, MetricCollectionMap
+from memejax.jax.util import JaxArrayMap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -74,7 +74,7 @@ class CompoundBlkCfg(OptunaParameterable, DataClassJsonMixin):
         return cfg
 
 
-CompoundBlkData = dict[str, ArrayMap]
+CompoundBlkData = dict[str, JaxArrayMap]
 
 
 class CompoundBlk(nn.Module):
@@ -82,8 +82,8 @@ class CompoundBlk(nn.Module):
     blk_cfg: CompoundBlkCfg
 
     @staticmethod
-    def _collect_inputs(results: CompoundBlkData, blk: CompoundItem) -> ArrayMap:
-        inputs: ArrayMap = {}
+    def _collect_inputs(results: CompoundBlkData, blk: CompoundItem) -> JaxArrayMap:
+        inputs: JaxArrayMap = {}
         for inp in blk.inputs:
             src = results[inp.src]
             cols = src.keys() if len(inp.cols) == 0 else inp.cols
@@ -103,7 +103,7 @@ class CompoundBlk(nn.Module):
         blk_cfg: CompoundBlkCfg,
         variables: VariableDict,
         model_output: CompoundBlkData,
-        aux: ArrayMap,
+        aux: JaxArrayMap,
     ) -> MetricCollectionMap:
         from memejax.jax.model.blocks.block_impl import blk_kind_model_class
 
@@ -120,7 +120,7 @@ class CompoundBlk(nn.Module):
         return metrics
 
     @nn.compact
-    def __call__(self, x: ArrayMap, train: bool) -> CompoundBlkData:
+    def __call__(self, x: JaxArrayMap, train: bool) -> CompoundBlkData:
         from memejax.jax.model.blocks.block_impl import blk_kind_model_class
 
         ts: TopologicalSorter = TopologicalSorter()

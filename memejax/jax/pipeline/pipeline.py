@@ -7,9 +7,8 @@ import jax
 import orbax.checkpoint as ocp
 from jax import Array
 
-from memejax.jax.jnp import ArrayMap, ModelOutput
 from memejax.jax.pipeline.checkpoint import make_checkpoint_manager
-from memejax.jax.pipeline.dataset import Dataset, TrainingData
+from memejax.jax.pipeline.dataset import JaxDataset, JaxTrainData
 from memejax.jax.pipeline.metrics import (
     DeviceMetricDict,
     LocalMetricDict,
@@ -17,18 +16,21 @@ from memejax.jax.pipeline.metrics import (
     get_local_mdict,
 )
 from memejax.jax.pipeline.reporter import Reporter
-from memejax.jax.pipeline.train_cfg import TrainCfg
-from memejax.jax.pipeline.trainer import Trainer, TrainMeta
+from memejax.jax.pipeline.train_cfg import JaxTrainCfg
+from memejax.jax.pipeline.trainer import JaxTrainer, JaxTrainMeta
+from memejax.jax.util import JaxArrayMap, JaxModelOutput
 
-ExampleFn = Callable[[tuple[TrainingData, ModelOutput], tuple[TrainingData, ModelOutput]], None]
+ExampleFn = Callable[
+    [tuple[JaxTrainData, JaxModelOutput], tuple[JaxTrainData, JaxModelOutput]], None
+]
 
 
-class Pipeline:
+class JaxPipeline:
     rng: Array
-    cfg: TrainCfg
-    train_ds: Dataset
-    valid_ds: Dataset
-    trainer: Trainer
+    cfg: JaxTrainCfg
+    train_ds: JaxDataset
+    valid_ds: JaxDataset
+    trainer: JaxTrainer
     reporter: Reporter | None
     example_fn: ExampleFn | None
     ckpt_mgr: ocp.CheckpointManager | None = None
@@ -39,9 +41,9 @@ class Pipeline:
         self,
         *,
         rng: Array,
-        cfg: TrainCfg,
-        train_ds: Dataset,
-        valid_ds: Dataset,
+        cfg: JaxTrainCfg,
+        train_ds: JaxDataset,
+        valid_ds: JaxDataset,
         model_cls: type[nn.Module],
         model_args: Any,
         metrics_fn: MetricsFn,
@@ -60,7 +62,7 @@ class Pipeline:
             self.reporter = Reporter(self.cfg)
 
         self.rng, rng = jax.random.split(rng)
-        self.trainer = Trainer(
+        self.trainer = JaxTrainer(
             rng=rng,
             cfg=cfg,
             batched_inp=batched_sample.model_inp,
@@ -74,13 +76,13 @@ class Pipeline:
             self.ckpt_mgr = make_checkpoint_manager(cfg.output_path, self.cfg.ckpt_max_secs)
 
     def _train_epoch(
-        self, meta: TrainMeta
-    ) -> tuple[DeviceMetricDict, tuple[TrainingData, ModelOutput]]:
+        self, meta: JaxTrainMeta
+    ) -> tuple[DeviceMetricDict, tuple[JaxTrainData, JaxModelOutput]]:
         self.rng, rng = jax.random.split(self.rng)
         batches = self.train_ds.batches(self.cfg.epoch_batches, self.cfg.batch_size, rng)
         return self.trainer.train_epoch(batches, meta)
 
-    def _validate(self) -> tuple[DeviceMetricDict, tuple[TrainingData, ModelOutput]]:
+    def _validate(self) -> tuple[DeviceMetricDict, tuple[JaxTrainData, JaxModelOutput]]:
         self.rng, rng = jax.random.split(self.rng)
         batches = self.valid_ds.batches(self.cfg.valid_batches, self.cfg.batch_size, rng)
         return self.trainer.validate(batches)
@@ -120,7 +122,9 @@ class Pipeline:
             print(f"  best saved loss: {self.best_ckpt_loss:.4f} on epoch {self.best_ckpt_epoch}")
 
     def train_epoch(self, epoch: int, max_epochs: int) -> DeviceMetricDict:
-        train_dmdict, example_train = self._train_epoch(meta=TrainMeta.from_data(epoch, max_epochs))
+        train_dmdict, example_train = self._train_epoch(
+            meta=JaxTrainMeta.from_data(epoch, max_epochs)
+        )
         valid_dmdict, example_valid = self._validate()
 
         if self.reporter or self.ckpt_mgr:
@@ -141,7 +145,7 @@ class Pipeline:
         assert last_valid_dmdict
         return last_valid_dmdict
 
-    def inference(self, batch_inp: ArrayMap) -> ModelOutput:
+    def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return self.trainer.inference(batch_inp)
 
     def load_ckpt(self, path: Path, best: bool, step: int | None) -> None:

@@ -33,6 +33,7 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
     min_child_weight: float = 1.0
     max_delta_step: float = 0.0
     subsample: float = 1.0
+    colsample_bytree: float = 1.0
     l1_reg: float = 0.0
     l2_reg: float = 1.0
     tree_method: XgbTreeMethod = XgbTreeMethod.AUTO
@@ -42,18 +43,35 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "XgbTrainCfg":
         cfg = copy.deepcopy(self)
-        cfg.booster = suggest_enum(trial, prefix + "kind", XgbBoosterKind)
-        cfg.lr = trial.suggest_float(prefix + "lr", 0.0, 1.0, step=0.01)
-        cfg.min_split_loss = trial.suggest_float(prefix + "min_split_loss", 0.0, 1000.0, log=True)
-        cfg.max_depth = trial.suggest_int(prefix + "max_depth", 1, 15)
-        cfg.min_child_weight = trial.suggest_float(
-            prefix + "min_child_weight", 0.0, 1000.0, log=True
-        )
-        cfg.max_delta_step = trial.suggest_float(prefix + "max_delta_step", 0.0, 1000.0, log=True)
-        cfg.subsample = trial.suggest_float(prefix + "subsample", 0.0, 1.0, step=0.01)
-        cfg.l1_reg = trial.suggest_float(prefix + "l1_reg", 0.0, 1000.0, log=True)
-        cfg.l2_reg = trial.suggest_float(prefix + "l2_reg", 0.0, 1000.0, log=True)
-        cfg.tree_method = suggest_enum(trial, prefix + "tree_method", XgbTreeMethod)
+        if optuna_cfg.optimizer_details:
+            cfg.booster = suggest_enum(trial, prefix + "kind", XgbBoosterKind)
+            cfg.tree_method = suggest_enum(trial, prefix + "tree_method", XgbTreeMethod)
+
+        if optuna_cfg.learning_rates:
+            cfg.lr = trial.suggest_float(prefix + "lr", 0.0, 1.0, step=0.01)
+            cfg.subsample = trial.suggest_float(prefix + "subsample", 0.0, 1.0, step=0.01)
+            cfg.colsample_bytree = trial.suggest_float(
+                prefix + "colsample_bytree", 0.01, 1.0, step=0.01
+            )
+
+        if optuna_cfg.model_params:
+            cfg.min_split_loss = trial.suggest_float(
+                prefix + "min_split_loss", 0.0, 1000.0, log=True
+            )
+            cfg.min_child_weight = trial.suggest_float(
+                prefix + "min_child_weight", 0.0, 1000.0, log=True
+            )
+            cfg.max_delta_step = trial.suggest_float(
+                prefix + "max_delta_step", 0.0, 1000.0, log=True
+            )
+
+        if optuna_cfg.model_dims:
+            cfg.max_depth = trial.suggest_int(prefix + "max_depth", 1, 15)
+
+        if optuna_cfg.regularization_details:
+            cfg.l1_reg = trial.suggest_float(prefix + "l1_reg", 0.0, 1000.0, log=True)
+            cfg.l2_reg = trial.suggest_float(prefix + "l2_reg", 0.0, 1000.0, log=True)
+
         return cfg
 
     def make_params(self) -> dict[str, Any]:

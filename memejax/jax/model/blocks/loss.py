@@ -5,7 +5,6 @@ import optax
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 
 from memejax.jax.hyperparam.trial import OptunaParameterable
-from memejax.jax.jnp import ArrayMap
 from memejax.jax.pipeline.metrics import (
     ClfMetrics,
     LogitAccuracyMetric,
@@ -13,6 +12,7 @@ from memejax.jax.pipeline.metrics import (
     MeanMetric,
     MetricCollection,
 )
+from memejax.jax.util import JaxArrayMap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -27,7 +27,7 @@ class LossCrossEntropyIntegerBlk(nn.Module):
     blk_cfg: LossPredictionCfg
 
     @nn.compact
-    def __call__(self, inp: ArrayMap) -> ClfMetrics:
+    def __call__(self, inp: JaxArrayMap) -> ClfMetrics:
         x, y = inp[self.blk_cfg.prediction], inp[self.blk_cfg.target]
         cross_entropy = optax.softmax_cross_entropy_with_integer_labels(x, y).mean()
         loss = cross_entropy * self.blk_cfg.multiplier
@@ -42,7 +42,7 @@ class LossMSEBlk(nn.Module):
     blk_cfg: LossPredictionCfg
 
     @nn.compact
-    def __call__(self, inp: ArrayMap) -> MetricCollection:
+    def __call__(self, inp: JaxArrayMap) -> MetricCollection:
         x = inp[self.blk_cfg.prediction].reshape(-1)
         y = inp.get(self.blk_cfg.target, None)
         if y is not None:
@@ -64,7 +64,7 @@ class LossKLDivergenceBlk(nn.Module):
     blk_cfg: LossLogPredictionCfg
 
     @nn.compact
-    def __call__(self, inp: ArrayMap) -> MetricCollection:
+    def __call__(self, inp: JaxArrayMap) -> MetricCollection:
         x = inp[self.blk_cfg.log_prediction].reshape(-1)
         y = inp[self.blk_cfg.target].reshape(-1)
         loss = optax.kl_divergence(x, targets=y).mean() * self.blk_cfg.multiplier

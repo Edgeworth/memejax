@@ -12,9 +12,9 @@ from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
-from memejax.jax.jnp import ArrayMap
 from memejax.jax.model.blocks.cfg import ModelCfg, Variable
 from memejax.jax.model.layers.mlp import MlpLayer
+from memejax.jax.util import JaxArrayMap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -47,7 +47,7 @@ class EncoderBlk(nn.Module):
     blk_cfg: EncoderBlkCfg
 
     @nn.compact
-    def __call__(self, data: ArrayMap, train: bool) -> Array:
+    def __call__(self, data: JaxArrayMap, train: bool) -> Array:
         cfg = self.cfg
         blk_cfg = self.blk_cfg
 

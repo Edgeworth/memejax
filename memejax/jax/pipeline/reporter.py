@@ -8,13 +8,13 @@ from memejax.jax.pipeline.metrics import (
     pretty_print_mdict,
     slow_div_mdict,
 )
-from memejax.jax.pipeline.train_cfg import TrainCfg
+from memejax.jax.pipeline.train_cfg import JaxTrainCfg
 
 
 class Reporter:
     """Reports info to tensorboard, the console, etc."""
 
-    cfg: TrainCfg
+    cfg: JaxTrainCfg
     writer: metric_writers.SummaryWriter
     periodic_progress: periodic_actions.ReportProgress
     periodic_cb: list[periodic_actions.PeriodicCallback]
@@ -26,7 +26,7 @@ class Reporter:
     report_dmdict: DeviceMetricDict
     report_count: float = 0.0
 
-    def __init__(self, cfg: TrainCfg) -> None:
+    def __init__(self, cfg: JaxTrainCfg) -> None:
         self.cfg = cfg
         self.print_dmdict = {}
         self.report_dmdict = {}

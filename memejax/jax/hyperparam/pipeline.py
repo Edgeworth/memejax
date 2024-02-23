@@ -4,19 +4,19 @@ import flax.linen as nn
 import jax
 import optuna
 
-from memejax.jax.jnp import ModelOutput
-from memejax.jax.pipeline.dataset import Dataset, TrainingData
+from memejax.jax.pipeline.dataset import JaxDataset, JaxTrainData
 from memejax.jax.pipeline.metrics import DeviceMetricDict, MetricsFn, get_local_mdict
-from memejax.jax.pipeline.train_cfg import TrainCfg
-from memejax.jax.pipeline.trainer import Trainer, TrainMeta
+from memejax.jax.pipeline.train_cfg import JaxTrainCfg
+from memejax.jax.pipeline.trainer import JaxTrainer, JaxTrainMeta
+from memejax.jax.util import JaxModelOutput
 
 
-class HyperParameterPipeline:
-    cfg: TrainCfg
+class JaxHyperParameterPipeline:
+    cfg: JaxTrainCfg
     prefix: str
-    train_ds: Dataset
-    valid_ds: Dataset
-    trainers: list[Trainer]
+    train_ds: JaxDataset
+    valid_ds: JaxDataset
+    trainers: list[JaxTrainer]
     trial: optuna.Trial
 
     def __init__(
@@ -24,9 +24,9 @@ class HyperParameterPipeline:
         *,
         prefix: str,
         trial: optuna.Trial,
-        cfg: TrainCfg,
-        train_ds: Dataset,
-        valid_ds: Dataset,
+        cfg: JaxTrainCfg,
+        train_ds: JaxDataset,
+        valid_ds: JaxDataset,
         model_cls: type[nn.Module],
         model_args: Any,
         metrics_fn: MetricsFn,
@@ -45,7 +45,7 @@ class HyperParameterPipeline:
         self.trainers = []
         for _ in range(sample_size):
             self.rng, rng = jax.random.split(self.rng)
-            trainer = Trainer(
+            trainer = JaxTrainer(
                 rng=rng,
                 cfg=cfg,
                 batched_inp=batched_sample.model_inp,
@@ -56,15 +56,15 @@ class HyperParameterPipeline:
             self.trainers.append(trainer)
 
     def _train_epoch(
-        self, trainer: Trainer, meta: TrainMeta
-    ) -> tuple[DeviceMetricDict, tuple[TrainingData, ModelOutput]]:
+        self, trainer: JaxTrainer, meta: JaxTrainMeta
+    ) -> tuple[DeviceMetricDict, tuple[JaxTrainData, JaxModelOutput]]:
         self.rng, rng = jax.random.split(self.rng)
         batches = self.train_ds.batches(self.cfg.epoch_batches, self.cfg.batch_size, rng)
         return trainer.train_epoch(batches, meta)
 
     def _validate(
-        self, trainer: Trainer
-    ) -> tuple[DeviceMetricDict, tuple[TrainingData, ModelOutput]]:
+        self, trainer: JaxTrainer
+    ) -> tuple[DeviceMetricDict, tuple[JaxTrainData, JaxModelOutput]]:
         self.rng, rng = jax.random.split(self.rng)
         batches = self.valid_ds.batches(self.cfg.valid_batches, self.cfg.batch_size, rng)
         return trainer.validate(batches)
@@ -72,7 +72,9 @@ class HyperParameterPipeline:
     def _run_epoch(self, epoch: int, max_epochs: int) -> list[float]:
         losses = []
         for trainer in self.trainers:
-            _, _ = self._train_epoch(trainer=trainer, meta=TrainMeta.from_data(epoch, max_epochs))
+            _, _ = self._train_epoch(
+                trainer=trainer, meta=JaxTrainMeta.from_data(epoch, max_epochs)
+            )
             valid_dmdict, _ = self._validate(trainer)
 
             valid_mdict = get_local_mdict(valid_dmdict)

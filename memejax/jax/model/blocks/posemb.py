@@ -12,7 +12,7 @@ from jax import Array
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
 from memejax.jax.model.blocks.cfg import ModelCfg
 from memejax.jax.model.util.initializers import initialize_sinusoidal, sinusoidal_emb
-from memejax.jax.util import ArrayOrMap, apply_arrayormap
+from memejax.jax.util import JaxArrayOrMap, apply_arrayormap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -52,5 +52,5 @@ class PosEmbBlk(nn.Module):
         return x
 
     @nn.compact
-    def __call__(self, inp: ArrayOrMap, train: bool) -> ArrayOrMap:
+    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
         return apply_arrayormap(inp, train, self.apply_array)

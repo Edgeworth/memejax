@@ -14,9 +14,8 @@ from flax.training import train_state
 from jax import Array
 from jax.typing import ArrayLike
 
-from memejax.jax.jnp import ArrayMap, ModelOutput
 from memejax.jax.pipeline.checkpoint import select_checkpoint
-from memejax.jax.pipeline.dataset import TrainingData
+from memejax.jax.pipeline.dataset import JaxTrainData
 from memejax.jax.pipeline.metrics import (
     DeviceMetricDict,
     MetricsFn,
@@ -24,12 +23,12 @@ from memejax.jax.pipeline.metrics import (
     slow_div_mdict,
 )
 from memejax.jax.pipeline.reporter import Reporter
-from memejax.jax.pipeline.train_cfg import OptimizerCfg, RegularizationKind, TrainCfg
-from memejax.jax.util import maybe_chexify
+from memejax.jax.pipeline.train_cfg import JaxTrainCfg, OptimizerCfg, RegularizationKind
+from memejax.jax.util import JaxArrayMap, JaxModelOutput, maybe_chexify
 
 
 @struct.dataclass
-class TrainMeta(struct.PyTreeNode):
+class JaxTrainMeta(struct.PyTreeNode):
     # Denotes how far through the training we are: [0.0, 1.0].
     train_fraction: Array
 
@@ -47,14 +46,16 @@ class TrainMeta(struct.PyTreeNode):
         return (epoch - max_epochs * start_frac) / (max_epochs * (1.0 - start_frac - end_frac))
 
     @staticmethod
-    def from_data(epoch: int, max_epochs: int) -> "TrainMeta":
-        return TrainMeta(train_fraction=jnp.array(TrainMeta._train_fraction(epoch, max_epochs)))
+    def from_data(epoch: int, max_epochs: int) -> "JaxTrainMeta":
+        return JaxTrainMeta(
+            train_fraction=jnp.array(JaxTrainMeta._train_fraction(epoch, max_epochs))
+        )
 
 
-class TrainState(train_state.TrainState):
+class JaxTrainState(train_state.TrainState):
     dropout_rng: Array = struct.field(pytree_node=True)
-    batch_stats: ArrayMap = struct.field(pytree_node=True)
-    meta: TrainMeta = struct.field(pytree_node=True)
+    batch_stats: JaxArrayMap = struct.field(pytree_node=True)
+    meta: JaxTrainMeta = struct.field(pytree_node=True)
 
     def make_variables(self) -> dict[str, Mapping[str, Any]]:
         return {
@@ -64,11 +65,11 @@ class TrainState(train_state.TrainState):
         }
 
 
-class Trainer:
+class JaxTrainer:
     rng: Array
-    cfg: TrainCfg
+    cfg: JaxTrainCfg
     model: nn.Module
-    state: TrainState
+    state: JaxTrainState
     metrics_fn: MetricsFn
     reporter: Reporter | None
 
@@ -78,7 +79,7 @@ class Trainer:
 
     @staticmethod
     def vmap_model(
-        model_cls: type[nn.Module], model_args: Any, batched_inp: ArrayMap, vmap_in: Any = None
+        model_cls: type[nn.Module], model_args: Any, batched_inp: JaxArrayMap, vmap_in: Any = None
     ) -> nn.Module:
         # If there is no info on how to map each part of the input, assume it
         # should all be mapped over the first axis.
@@ -101,8 +102,8 @@ class Trainer:
         self,
         *,
         rng: Array,
-        cfg: TrainCfg,
-        batched_inp: ArrayMap,
+        cfg: JaxTrainCfg,
+        batched_inp: JaxArrayMap,
         model_cls: type[nn.Module],
         model_args: Any,
         metrics_fn: MetricsFn,
@@ -116,7 +117,7 @@ class Trainer:
         # Automatically batch the model. Don't vmap everything at the loss
         # function level since we need to specify how variables and rngs are
         # lifted.
-        self.model = Trainer.vmap_model(model_cls, model_args, batched_inp, vmap_in)
+        self.model = JaxTrainer.vmap_model(model_cls, model_args, batched_inp, vmap_in)
 
         chain = []
         if cfg.opt_cfg.adaptive_grad_clip is not None:
@@ -137,13 +138,13 @@ class Trainer:
         print(f"Training model with {param_count} parameters.")
 
         self.rng, rng = jax.random.split(rng)
-        self.state = TrainState.create(
+        self.state = JaxTrainState.create(
             apply_fn=self.model.apply,
             params=params,
             tx=tx,
             dropout_rng=rng,
             batch_stats=batch_stats,
-            meta=TrainMeta(train_fraction=jnp.array(0.0)),
+            meta=JaxTrainMeta(train_fraction=jnp.array(0.0)),
         )
 
     @staticmethod
@@ -159,16 +160,16 @@ class Trainer:
     @staticmethod
     @jax.jit
     def _elastic_reg(x: ArrayLike, lmbda: ArrayLike, alpha: ArrayLike) -> Array:
-        l1 = jnp.asarray(alpha * Trainer._l1_reg(x, lmbda))
-        l2 = jnp.asarray((1.0 - alpha) * Trainer._l2_reg(x, lmbda))
+        l1 = jnp.asarray(alpha * JaxTrainer._l1_reg(x, lmbda))
+        l2 = jnp.asarray((1.0 - alpha) * JaxTrainer._l2_reg(x, lmbda))
         return l1 + l2
 
     @staticmethod
     @partial(jax.jit, static_argnames=("metrics_fn", "opt_cfg"))
     def _metrics(
         variables: VariableDict,
-        output: ModelOutput,
-        batch_aux: ArrayMap,
+        output: JaxModelOutput,
+        batch_aux: JaxArrayMap,
         metrics_fn: MetricsFn,
         opt_cfg: OptimizerCfg,
     ) -> DeviceMetricDict:
@@ -188,12 +189,12 @@ class Trainer:
         assert "loss" not in dmdict
         dmdict["loss"] = jnp.array(losses).sum()
 
-        reg_fn = lambda x: Trainer._l1_reg(x, lmbda=opt_cfg.reg_lambda)
+        reg_fn = lambda x: JaxTrainer._l1_reg(x, lmbda=opt_cfg.reg_lambda)
         match opt_cfg.reg:
             case RegularizationKind.L2:
-                reg_fn = lambda x: Trainer._l2_reg(x, lmbda=opt_cfg.reg_lambda)
+                reg_fn = lambda x: JaxTrainer._l2_reg(x, lmbda=opt_cfg.reg_lambda)
             case RegularizationKind.ELASTIC:
-                reg_fn = lambda x: Trainer._elastic_reg(
+                reg_fn = lambda x: JaxTrainer._elastic_reg(
                     x, lmbda=opt_cfg.reg_lambda, alpha=opt_cfg.reg_alpha
                 )
 
@@ -207,13 +208,13 @@ class Trainer:
     @maybe_chexify
     @partial(jax.jit, static_argnames=("metrics_fn", "opt_cfg"))
     def _train_step(
-        state: TrainState, batch: TrainingData, metrics_fn: MetricsFn, opt_cfg: OptimizerCfg
-    ) -> tuple[TrainState, DeviceMetricDict, ModelOutput, ArrayMap]:
+        state: JaxTrainState, batch: JaxTrainData, metrics_fn: MetricsFn, opt_cfg: OptimizerCfg
+    ) -> tuple[JaxTrainState, DeviceMetricDict, JaxModelOutput, JaxArrayMap]:
         dropout_rng = jax.random.fold_in(key=state.dropout_rng, data=state.step)
 
         def loss_fn(
             params: dict[str, Any],
-        ) -> tuple[ArrayLike, tuple[DeviceMetricDict, ArrayMap, ArrayMap]]:
+        ) -> tuple[ArrayLike, tuple[DeviceMetricDict, JaxArrayMap, JaxArrayMap]]:
             variables = state.make_variables()
             # Use given params to make sure differentiation works.
             variables["params"] = params
@@ -224,7 +225,7 @@ class Trainer:
                 mutable=["batch_stats"],
                 rngs={"dropout": dropout_rng},
             )
-            mdict = Trainer._metrics(variables, output, batch.aux, metrics_fn, opt_cfg)
+            mdict = JaxTrainer._metrics(variables, output, batch.aux, metrics_fn, opt_cfg)
 
             return mdict["loss"], (mdict, updates, output)
 
@@ -238,14 +239,14 @@ class Trainer:
 
     @staticmethod
     @jax.jit
-    def _check_grads_zero(grads: ArrayMap) -> Array:
+    def _check_grads_zero(grads: JaxArrayMap) -> Array:
         return jax.tree_util.tree_reduce(
             lambda x, y: jnp.logical_and(x, jnp.allclose(y, 0.0)), grads, jnp.array(True)
         )
 
     @staticmethod
     @jax.jit
-    def _check_param_range(state: TrainState) -> tuple[Array, Array]:
+    def _check_param_range(state: JaxTrainState) -> tuple[Array, Array]:
         return jax.tree_util.tree_reduce(
             lambda x, y: (
                 jax.lax.min(x[0], jnp.min(y.reshape(-1))),
@@ -257,7 +258,7 @@ class Trainer:
 
     @staticmethod
     @jax.jit
-    def _check_grad_range(grads: ArrayMap) -> tuple[Array, Array]:
+    def _check_grad_range(grads: JaxArrayMap) -> tuple[Array, Array]:
         return jax.tree_util.tree_reduce(
             lambda x, y: (
                 jax.lax.min(x[0], jnp.min(y.reshape(-1))),
@@ -268,8 +269,8 @@ class Trainer:
         )
 
     def train_epoch(
-        self, batches: Iterator[TrainingData], meta: TrainMeta
-    ) -> tuple[DeviceMetricDict, tuple[TrainingData, ModelOutput]]:
+        self, batches: Iterator[JaxTrainData], meta: JaxTrainMeta
+    ) -> tuple[DeviceMetricDict, tuple[JaxTrainData, JaxModelOutput]]:
         # Keep things on the GPU for as long as possible.
         total_dmdict: DeviceMetricDict = {}
         last_output = None
@@ -296,7 +297,7 @@ class Trainer:
         assert last_grads
         # TODO(0): move to reporter, output to tensorboard as well.
         if self.cfg.check_epochs and self.check_count % self.cfg.check_epochs == 0:
-            if Trainer._check_grads_zero(last_grads):
+            if JaxTrainer._check_grads_zero(last_grads):
                 self.grad_zero_count += 1
             else:
                 self.grad_zero_count = 0
@@ -305,8 +306,8 @@ class Trainer:
                 print(f"GRADIENTS ARE ALL CLOSE TO ZERO {self.grad_zero_count} times")
 
         if self.cfg.report_epochs and self.report_epochs % self.cfg.report_epochs == 0:
-            param_min, param_max = Trainer._check_param_range(self.state)
-            grad_min, grad_max = Trainer._check_grad_range(last_grads)
+            param_min, param_max = JaxTrainer._check_param_range(self.state)
+            grad_min, grad_max = JaxTrainer._check_grad_range(last_grads)
             # TODO(0): add mean
             total_dmdict["param_min"] = param_min
             total_dmdict["param_max"] = param_max
@@ -323,20 +324,20 @@ class Trainer:
 
     @staticmethod
     @jax.jit
-    def _apply_fn(state: TrainState, batch_inp: ArrayMap) -> ModelOutput:
+    def _apply_fn(state: JaxTrainState, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return state.apply_fn(state.make_variables(), batch_inp, False)
 
     # @chex.chexify
     def validate(
-        self, batches: Iterator[TrainingData]
-    ) -> tuple[DeviceMetricDict, tuple[TrainingData, ModelOutput]]:
+        self, batches: Iterator[JaxTrainData]
+    ) -> tuple[DeviceMetricDict, tuple[JaxTrainData, JaxModelOutput]]:
         # Compute metrics using validation data.
         total_dmdict: DeviceMetricDict = {}
         num_batches = 0.0
         last_output = None
         for batch in batches:
-            output = Trainer._apply_fn(self.state, batch.model_inp)
-            dmdict = Trainer._metrics(
+            output = JaxTrainer._apply_fn(self.state, batch.model_inp)
+            dmdict = JaxTrainer._metrics(
                 self.state.make_variables(), output, batch.aux, self.metrics_fn, self.cfg.opt_cfg
             )
             total_dmdict = jnp_add_dmdicts(total_dmdict, dmdict)
@@ -346,8 +347,8 @@ class Trainer:
         total_dmdict = slow_div_mdict(total_dmdict, num_batches)
         return total_dmdict, last_output
 
-    def inference(self, batch_inp: ArrayMap) -> ModelOutput:
-        return Trainer._apply_fn(self.state, batch_inp)
+    def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
+        return JaxTrainer._apply_fn(self.state, batch_inp)
 
     def save_ckpt(self) -> dict:
         # Return a pytree of everything trainer needs to checkpoint.

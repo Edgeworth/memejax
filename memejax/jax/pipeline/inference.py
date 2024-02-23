@@ -7,42 +7,44 @@ import jax.numpy as jnp
 import tensorflow as tf
 from orbax.export import ExportManager, JaxModule, ServingConfig
 
-from memejax.jax.jnp import ArrayMap, ModelOutput
 from memejax.jax.pipeline.checkpoint import select_checkpoint
-from memejax.jax.pipeline.trainer import Trainer
+from memejax.jax.pipeline.trainer import JaxTrainer
+from memejax.jax.util import JaxArrayMap, JaxModelOutput
 
 
-class CkptInference:
+class JaxCkptInference:
     model: nn.Module
     state: dict[str, Any]
-    batched_inp: ArrayMap
+    batched_inp: JaxArrayMap
 
     def __init__(
         self,
         *,
-        batched_inp: ArrayMap,
+        batched_inp: JaxArrayMap,
         model_cls: type[nn.Module],
         model_args: Any,
         vmap_in: Any = None,
     ) -> None:
-        self.model = Trainer.vmap_model(model_cls, model_args, batched_inp, vmap_in)
+        self.model = JaxTrainer.vmap_model(model_cls, model_args, batched_inp, vmap_in)
         self.batched_inp = batched_inp
 
     @staticmethod
-    def _apply_fn(model: nn.Module, state: dict[str, Any], batch_inp: ArrayMap) -> ModelOutput:
+    def _apply_fn(
+        model: nn.Module, state: dict[str, Any], batch_inp: JaxArrayMap
+    ) -> JaxModelOutput:
         params = state["state"]["params"]
-        batch_stats: ArrayMap = state["state"]["batch_stats"] or {}
+        batch_stats: JaxArrayMap = state["state"]["batch_stats"] or {}
         out = model.apply({"params": params, "batch_stats": batch_stats}, batch_inp, False)
         print(out)
         return out
 
-    def inference(self, batch_inp: ArrayMap) -> ModelOutput:
-        return CkptInference._apply_fn(self.model, self.state, batch_inp)
+    def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
+        return JaxCkptInference._apply_fn(self.model, self.state, batch_inp)
 
     def load_ckpt(self, path: Path, best: bool, step: int | None) -> None:
         self.state = select_checkpoint(path, best, step)
 
-    def _array_map_to_input_signature(self, data: ArrayMap) -> Any:
+    def _array_map_to_input_signature(self, data: JaxArrayMap) -> Any:
         # Include a polymorphic batch dimension.
         data_signature = {
             k: tf.TensorSpec([None, *v.shape[1:]], v.dtype, name=k) for k, v in data.items()
@@ -54,7 +56,7 @@ class CkptInference:
         jax_module = JaxModule(
             self.state,
             {
-                "predict": lambda *args: CkptInference._apply_fn(self.model, *args)["alloc_out"][
+                "predict": lambda *args: JaxCkptInference._apply_fn(self.model, *args)["alloc_out"][
                     "alloc"
                 ],
                 "metadata": lambda *_: jnp.array([ord(i) for i in metadata]),
@@ -81,7 +83,7 @@ class CkptInference:
         export_mgr.save(path)
 
 
-class SavedModelInference:
+class JaxSavedModelInference:
     model: Any
 
     def __init__(self, *, path: Path) -> None:
@@ -89,7 +91,7 @@ class SavedModelInference:
         print(jax.default_backend().upper())
         self.model = tf.saved_model.load(path)
 
-    def inference(self, batch_inp: ArrayMap) -> ModelOutput:
+    def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return self.model.signatures["serving_default"](**batch_inp)["output_0"]
 
     def metadata(self) -> str:

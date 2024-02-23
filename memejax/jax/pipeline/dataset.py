@@ -7,32 +7,32 @@ from flax import struct
 from jax import Array
 from jax.typing import ArrayLike
 
-from memejax.jax.jnp import ArrayMap
+from memejax.jax.util import JaxArrayMap
 
 
 @struct.dataclass
-class TrainingData:
-    model_inp: ArrayMap  # for input data to model - data only necessary to run model
-    aux: ArrayMap  # for labels, etc - for loss functions etc
+class JaxTrainData:
+    model_inp: JaxArrayMap  # for input data to model - data only necessary to run model
+    aux: JaxArrayMap  # for labels, etc - for loss functions etc
 
     # Declare this here so it isn't recompiled on every call of ordered_batches.
     @staticmethod
     @jax.jit
-    def _get_by_idxs(data: ArrayMap, idxs: Array) -> ArrayMap:
+    def _get_by_idxs(data: JaxArrayMap, idxs: Array) -> JaxArrayMap:
         return {k: v[idxs] for k, v in data.items()}
 
-    def select_by_idxs(self, idxs: Array) -> "TrainingData":
-        return TrainingData(
+    def select_by_idxs(self, idxs: Array) -> "JaxTrainData":
+        return JaxTrainData(
             model_inp=self._get_by_idxs(self.model_inp, idxs), aux=self._get_by_idxs(self.aux, idxs)
         )
 
 
-class Dataset(Protocol):
-    def sample(self, _rng: Array) -> TrainingData:
+class JaxDataset(Protocol):
+    def sample(self, _rng: Array) -> JaxTrainData:
         """Return one single sample."""
-        return TrainingData({}, {})
+        return JaxTrainData({}, {})
 
-    def batch(self, batch_size: int, rng: Array) -> TrainingData:
+    def batch(self, batch_size: int, rng: Array) -> JaxTrainData:
         """Return one batch. Note the default implementation is not very efficient."""
         model_inp: dict[str, list[ArrayLike]] = {}
         aux: dict[str, list[ArrayLike]] = {}
@@ -47,9 +47,9 @@ class Dataset(Protocol):
 
         batch_model_inp = {k: jnp.stack(v) for k, v in model_inp.items()}
         batch_aux = {k: jnp.stack(v) for k, v in aux.items()}
-        return TrainingData(model_inp=batch_model_inp, aux=batch_aux)
+        return JaxTrainData(model_inp=batch_model_inp, aux=batch_aux)
 
-    def batches(self, num_batches: int, batch_size: int, rng: Array) -> Iterator[TrainingData]:
+    def batches(self, num_batches: int, batch_size: int, rng: Array) -> Iterator[JaxTrainData]:
         """Default implementation. Note the default implementation is not very
         efficient and selects without replacement, reusing samples."""
         assert num_batches >= 0  # don't know the size of the dataset
@@ -62,11 +62,11 @@ class Dataset(Protocol):
 
 
 @struct.dataclass
-class ArrayMapDataset(Dataset):
-    """Dataset where each value in the ArrayMap has the same first dimension
+class JaxArrayMapDataset(JaxDataset):
+    """Dataset where each value in the JaxArrayMap has the same first dimension
     which is the number of samples."""
 
-    data: TrainingData
+    data: JaxTrainData
 
     def __post_init__(self) -> None:
         # Check number of examples are consistent.
@@ -76,14 +76,14 @@ class ArrayMapDataset(Dataset):
         for v in self.data.aux.values():
             assert v.shape[0] == num_samples
 
-    def sample(self, rng: Array) -> TrainingData:
+    def sample(self, rng: Array) -> JaxTrainData:
         idx = jax.random.randint(rng, shape=(), minval=0, maxval=self.num_samples())
         return self.data.select_by_idxs(idx)
 
-    def batches(self, num_batches: int, batch_size: int, rng: Array) -> Iterator[TrainingData]:
+    def batches(self, num_batches: int, batch_size: int, rng: Array) -> Iterator[JaxTrainData]:
         return self.ordered_batches(num_batches, batch_size, rng, random=True)
 
-    def latest_batches(self, num_batches: int, batch_size: int) -> Iterator[TrainingData]:
+    def latest_batches(self, num_batches: int, batch_size: int) -> Iterator[JaxTrainData]:
         return self.ordered_batches(
             num_batches, batch_size, jax.random.PRNGKey(0), reverse=True, random=False
         )
@@ -95,7 +95,7 @@ class ArrayMapDataset(Dataset):
         rng: Array,
         random: bool = True,
         reverse: bool = False,
-    ) -> Iterator[TrainingData]:
+    ) -> Iterator[JaxTrainData]:
         if num_batches < 0:
             num_batches = self.num_samples()  # large number so it uses all batches
         num_batches = min(self.num_samples() // batch_size, num_batches)
@@ -114,7 +114,7 @@ class ArrayMapDataset(Dataset):
             idxs = jnp.arange(batch_samples)
             idxs = idxs.reshape((num_batches, batch_size))
 
-        # Could do vmap if we let this function return a ArrayMap of
+        # Could do vmap if we let this function return a JaxArrayMap of
         # (num_batches, batch_size, ...), but this is fast enough for now.
         batches = [self.data.select_by_idxs(batch_idxs) for batch_idxs in idxs]
         return iter(batches)

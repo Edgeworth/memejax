@@ -53,6 +53,9 @@ optuna_search_cfg_options = cloup.option_group(
         help="Search for regularization details.",
     ),
     cloup.option(
+        "--optuna-all", is_flag=True, default=False, help="Search for regularization details."
+    ),
+    cloup.option(
         "--optuna-sample-size",
         type=int,
         default=1,
@@ -67,9 +70,26 @@ def build_optuna_search_cfg_from_args(
     optuna_learning_rates: bool,
     optuna_optimizer_details: bool,
     optuna_regularization_details: bool,
+    optuna_all: bool,
     optuna_sample_size: int,
     **_kwargs: Any,
 ) -> OptunaSearchCfg:
+    if optuna_all:
+        assert not any(
+            [
+                optuna_model_dims,
+                optuna_model_params,
+                optuna_learning_rates,
+                optuna_optimizer_details,
+                optuna_regularization_details,
+            ]
+        )
+        optuna_model_dims = True
+        optuna_model_params = True
+        optuna_learning_rates = True
+        optuna_optimizer_details = True
+        optuna_regularization_details = True
+
     return OptunaSearchCfg(
         model_dims=optuna_model_dims,
         model_params=optuna_model_params,

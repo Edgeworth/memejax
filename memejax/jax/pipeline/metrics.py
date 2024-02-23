@@ -9,14 +9,8 @@ from flax.core.scope import VariableDict
 from jax import Array
 from jax.typing import ArrayLike
 
-from memejax.jax.jnp import (
-    ArrayMap,
-    ModelOutput,
-    jnp_geometric_mean,
-    jnp_identity,
-    jnp_soft_max,
-    jnp_soft_min,
-)
+from memejax.jax.jnp import jnp_geometric_mean, jnp_identity, jnp_soft_max, jnp_soft_min
+from memejax.jax.util import JaxArrayMap, JaxModelOutput
 
 # Collapsed version of MetricCollection.
 DeviceMetricDict = dict[str, ArrayLike]
@@ -58,7 +52,7 @@ def pretty_print_mdict(mdict: LocalMetricDict) -> None:
 
 
 MetricCollectionMap = dict[str, MetricCollection]
-MetricsFn = Callable[[VariableDict, ModelOutput, ArrayMap], MetricCollectionMap]
+MetricsFn = Callable[[VariableDict, JaxModelOutput, JaxArrayMap], MetricCollectionMap]
 
 
 @struct.dataclass

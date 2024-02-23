@@ -219,7 +219,7 @@ class OptimizerCfg(OptunaParameterable, DataClassJsonMixin):
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass(eq=True, kw_only=True, order=True)
-class TrainCfg(DataClassJsonMixin):
+class JaxTrainCfg(DataClassJsonMixin):
     """Encapsulates all configuration for running training for a model."""
 
     name: str = field(init=False)
