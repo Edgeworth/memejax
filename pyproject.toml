@@ -8,6 +8,7 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 # NOTE: to properly get poetry up --latest to update all of these, change all ^'s to = and run.
 chex = "^0.1.85"
+cloup = "^3.0.4"
 dataclasses-json = "^0.6.4"
 flax = "^0.8.1"
 jax = {version = "^0.4.24", source = "jorenham/jax_pep503"}

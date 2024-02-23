@@ -1,3 +1,4 @@
+import math
 from collections.abc import Callable
 from dataclasses import fields
 from typing import Any, TypeVar
@@ -5,7 +6,6 @@ from typing import Any, TypeVar
 import chex
 import jax
 import portpicker
-import math
 from jax import Array, config
 
 ArrayMap = dict[str, Array]
@@ -63,6 +63,7 @@ def maybe_chexify(fn: Callable[..., Any]) -> Callable[..., Any]:
 
 def dataclass_has_field(cls: type, field_name: str) -> bool:
     return any(f.name == field_name for f in fields(cls))
+
 
 def ceil_log(v: float, base: int) -> int:
     return int(math.ceil(math.log(v, base)))
