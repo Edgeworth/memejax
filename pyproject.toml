@@ -37,6 +37,7 @@ url = "https://jorenham.github.io/jax_pep503/"
 [tool.poetry.dev-dependencies]
 mypy = "^1.8.0"
 poetry-plugin-up = "^0.7.1"
+pytest = "^7.4.0"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib", "--tb=native"]

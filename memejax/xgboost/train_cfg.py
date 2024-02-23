@@ -1,9 +1,11 @@
 import copy
+from dataclasses import dataclass
 from enum import StrEnum
+from typing import Any
 
 import optuna
 import typing_extensions
-from dataclasses_json import DataClassJsonMixin
+from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg, suggest_enum
 
@@ -21,6 +23,8 @@ class XgbTreeMethod(StrEnum):
     HIST = "hist"
 
 
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass(eq=True, kw_only=True, order=True)
 class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
     booster: XgbBoosterKind = XgbBoosterKind.GBTREE
     lr: float = 0.3
@@ -36,7 +40,7 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
     @typing_extensions.override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
-    ) -> "XgBoostCfg":
+    ) -> "XgbTrainCfg":
         cfg = copy.deepcopy(self)
         cfg.booster = suggest_enum(trial, prefix + "kind", XgbBoosterKind)
         cfg.lr = trial.suggest_float(prefix + "lr", 0.0, 1.0, step=0.01)
@@ -52,7 +56,7 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
         cfg.tree_method = suggest_enum(trial, prefix + "tree_method", XgbTreeMethod)
         return cfg
 
-    def make_params(self) -> dict[str, str]:
+    def make_params(self) -> dict[str, Any]:
         return {
             "booster": str(self.booster),
             "learning_rate": self.lr,

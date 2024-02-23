@@ -5,6 +5,9 @@ alias u := update
 default:
   @just --list
 
+@test *args="":
+  poetry run pytest --pyargs memejax
+
 update:
   poetry run poetry up --latest
   poetry update
