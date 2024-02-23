@@ -1,0 +1,16 @@
+__pycache__
+.mypy_cache
+.pytest_cache
+*.pdf
+*.so
+/.cargo
+/data
+/target
+apikeys.json
+/flamegraph*
+perf.data
+perf.data.old
+vis.json
+.vscode
+.*.toml
+.ruff_cache

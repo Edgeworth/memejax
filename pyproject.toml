@@ -1,0 +1,146 @@
+[tool.poetry]
+authors = ["Eliot Courtney <edgeworth.dev@gmail.com>"]
+classifiers = ["License :: OSI Approved :: GPL-3.0-only"]
+description = "memejax"
+name = "memejax"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+# NOTE: to properly get poetry up --latest to update all of these, change all ^'s to = and run.
+chex = "^0.1.85"
+dataclasses-json = "^0.6.4"
+flax = "^0.8.1"
+jax = {version = "^0.4.24", source = "jorenham/jax_pep503"}
+jaxlib = {version = "^0.4.24+cuda12.cudnn89", source = "jorenham/jax_pep503"}
+numpy = "^1.26.4"
+optax = "^0.1.9"
+optuna = "^3.5.0"
+orbax-checkpoint = "^0.5.3"
+orbax-export = "^0.0.4"
+python = "~3.11"
+
+[[tool.poetry.source]]
+name = "jorenham/jax_pep503"
+priority = "supplemental"
+url = "https://jorenham.github.io/jax_pep503/"
+
+[tool.poetry.dev-dependencies]
+mypy = "^1.8.0"
+poetry-plugin-up = "^0.7.1"
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib", "--tb=native"]
+
+[tool.mypy]
+show_column_numbers = true
+# Require type hints
+disallow_untyped_defs = true
+
+# Allow types that is not imported to be used in annotations.
+# This is necessary because some libraries don't have annotations.
+disallow_any_unimported = false
+
+# Disallow implicit optional e.g. arg: str = None
+no_implicit_optional = true
+
+# Check bodies of functions without type annotations too
+check_untyped_defs = true
+
+# Warn about returning Any from a function annotated to not return it
+warn_return_any = true
+
+# Warn about unused ignore annotations
+warn_unused_ignores = true
+
+# Show error codes
+show_error_codes = true
+
+# Set python version.
+python_version = '3.11'
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "click_log.*",
+  "clu.*",
+  "colorcet.*",
+  "matplotlib.*",
+  "np.*",
+  "numpy.*",
+  "optax.*",
+  "orbax.*",
+  "pandas_ta.*",
+  "pandas.*",
+  "portpicker.*",
+  "pytz.*",
+  "seaborn.*",
+  "sklearn.*",
+  "skopt.*",
+  "tensorflow_datasets.*",
+  "tensorflow.*",
+  "torchtext.*",
+  "torchvision.*",
+  "json5.*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.format]
+# Make sure lists etc can go back onto one line if they get shorter.
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+ignore = [
+  "A003", # allow attribute shadowing builtins 'eval', 'sorted' etc
+  "ANN101", # no need to annotate self
+  "ANN102", # no need to annotate cls self
+  "ANN401", # allow Any type annotation
+  "BLE001", # allow except Exception
+  "C901", # ignore too complex code
+  "COM812", # allow missing trailing comma
+  "D", # ignore docstring stuff
+  "DTZ005", # allow naive datetime objects
+  "EM101", # allow exceptions with string arguments
+  "EM102", # allow f-string in exception
+  "ERA001", # allow commented out code
+  "FBT001", # allow boolean position arg in functions
+  "FBT002", # allow boolean position arg in functions
+  "FBT003", # allow boolean position arg in functions
+  "FIX", # no notes on FIXME, TODO, etc
+  "G004", # allow f-string in logs, just be careful if performance matters
+  "ISC001", # avoid conflict with formatter
+  "N803", # allow uppercase variables
+  "N806", # allow uppercase variables
+  "N812", # allow e.g. import torch.nn.functional as F
+  "PD002", # allow pandas in place operations
+  "PD901", # allow 'df'
+  "PLR0912", # allow more branches in functions
+  "PLR0913", # allow more arguments in functions
+  "PLR2004", # allow magic numbers
+  "PYI021", # allow docstrings in stubs
+  "RET504", # allow return statements after assignment of variable
+  "S101", # allow asserts
+  "S311", # remove cryptographic random gen false positives
+  "S324", # allow md5
+  "S603", # false positives on subprocess sanitising
+  "S605", # allow starting process via shell
+  "S608", # allow interpolated SQL (be careful)
+  "T201", # allow print statements
+  "TCH", # don't use type-checking import blocks
+  "TD", # no TODO related warnings
+  "TRY003", # allow exceptions with string arguments
+  "PLR0911", # allow more returns in functions
+  "E731", # allow assignment of lambda to variable
+]
+select = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**/*.py" = [
+  "SLF001", # allow private member access
+]
+
+[tool.ruff.lint.isort]
+# To be consistent with skip-magic-trailing-comma = true
+split-on-trailing-comma = false

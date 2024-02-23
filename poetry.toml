@@ -1,0 +1,4 @@
+[virtualenvs.options]
+# Allow using system packages if the version is ok. Useful for tensorflow etc, since we need to make
+# sure cuda version is okay.
+system-site-packages = true
