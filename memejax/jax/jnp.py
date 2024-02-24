@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import cast
 
 import jax
@@ -161,6 +162,12 @@ def jnp_identity(x: jax.Array) -> Array:
 def jnp_stddev(x: jax.Array) -> Array:
     """Safe and differentiable stddev."""
     return jnp.sqrt(jnp.var(x) + 1e-8)
+
+
+def hvp(f: Callable, primals: tuple, tangents: tuple) -> Array:
+    """Hessian-vector product."""
+    hvp = jax.jvp(jax.grad(f), primals, tangents)[1]
+    return cast(Array, hvp)
 
 
 def want_below_lin(x: Array, *, thresh: ArrayLike, hate_above: float, love_below: float) -> Array:

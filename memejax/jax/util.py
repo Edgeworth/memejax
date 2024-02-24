@@ -13,7 +13,9 @@ JaxModelOutput = Any
 _ENABLE_CHEXIFY = False
 
 
-def init_jax() -> None:
+def init_jax(*, cpu: bool = False) -> None:
+    if cpu:
+        config.update("jax_platform_name", "cpu")
     # For checkpointing.
     port = portpicker.pick_unused_port()
     jax.distributed.initialize(f"localhost:{port}", num_processes=1, process_id=0)
