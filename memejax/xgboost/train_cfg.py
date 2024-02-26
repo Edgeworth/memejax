@@ -35,6 +35,8 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
     tree_method: XgbTreeMethod = XgbTreeMethod.AUTO
     lr: float = 0.3
 
+    # Minimum loss reduction required to make a further partition. Higher makes the model more
+    # conservative (less overfitting).
     min_split_loss: float = 0.0
 
     # Maximum depth of tree. Higher makes the model more complex and likely to overfit.
@@ -44,7 +46,7 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
     # overfitting).
     min_child_weight: float = 1.0
 
-    # Higher makes the model more conservative (less overfitting).
+    # Higher makes the model more conservative (less overfitting). 0.0 means no constraint.
     max_delta_step: float = 0.0
 
     # Random sampling proportion of training data. Lower means less overfitting.
