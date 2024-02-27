@@ -70,6 +70,7 @@ class BlkKind(StrEnum):
     LOSS_MSE = "loss_mse"
     LOSS_KL_DIVERGENCE = "loss_kl_divergence"
     NEWAXIS = "newaxis"
+    MASK = "mask"
     MLP = "mlp"
     NOOP = "noop"
     POSEMB = "posemb"

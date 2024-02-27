@@ -99,3 +99,26 @@ class ReshapeBlk(nn.Module):
     @nn.compact
     def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
         return apply_arrayormap(inp, train, self.apply_array)
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass(eq=True, kw_only=True, order=True, frozen=True)
+class MaskBlkCfg(OptunaParameterable, DataClassJsonMixin):
+    mask: tuple[float, ...] = ()
+
+    @typing_extensions.override
+    def optuna_params(
+        self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
+    ) -> "MaskBlkCfg":
+        return self
+
+
+class MaskBlk(nn.Module):
+    blk_cfg: MaskBlkCfg
+
+    def apply_array(self, _key: str, x: Array, _train: bool) -> Array:
+        return x * jnp.array(self.blk_cfg.mask)
+
+    @nn.compact
+    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+        return apply_arrayormap(inp, train, self.apply_array)

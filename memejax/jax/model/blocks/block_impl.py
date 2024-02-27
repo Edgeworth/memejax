@@ -18,6 +18,8 @@ from memejax.jax.model.blocks.loss import (
 from memejax.jax.model.blocks.manipulation import (
     ConcatBlk,
     ConcatBlkCfg,
+    MaskBlk,
+    MaskBlkCfg,
     NewAxisBlk,
     NewAxisBlkCfg,
     NoopBlk,
@@ -39,6 +41,7 @@ BlkCfgType: TypeAlias = (
     | GaussianNoiseBlkCfg
     | LossPredictionCfg
     | LossLogPredictionCfg
+    | MaskBlkCfg
     | MlpBlkCfg
     | NewAxisBlkCfg
     | PosEmbBlkCfg
@@ -82,6 +85,7 @@ _BLKKIND_TO_BLK_CLS = {
     BlkKind.LOSS_MSE: LossMSEBlk,
     BlkKind.LOSS_KL_DIVERGENCE: LossKLDivergenceBlk,
     BlkKind.MLP: MlpBlk,
+    BlkKind.MASK: MaskBlk,
     BlkKind.NOOP: NoopBlk,
     BlkKind.NEWAXIS: NewAxisBlk,
     BlkKind.POSEMB: PosEmbBlk,
@@ -100,6 +104,7 @@ _BLKKIND_TO_BLK_CFG_CLS: dict[BlkKind, type[BlkCfgType]] = {
     BlkKind.LOSS_MSE: LossPredictionCfg,
     BlkKind.LOSS_KL_DIVERGENCE: LossLogPredictionCfg,
     BlkKind.MLP: MlpBlkCfg,
+    BlkKind.MASK: MaskBlkCfg,
     BlkKind.NOOP: EmptyBlkCfg,
     BlkKind.NEWAXIS: NewAxisBlkCfg,
     BlkKind.POSEMB: PosEmbBlkCfg,

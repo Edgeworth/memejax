@@ -52,6 +52,12 @@ class CompoundBlkCfg(OptunaParameterable, DataClassJsonMixin):
     blks: tuple[CompoundItem, ...] = ()
     losses: tuple[CompoundItem, ...] = ()
 
+    def get_blk_by_name(self, name: str) -> CompoundItem | None:
+        for blk in self.blks:
+            if blk.name == name:
+                return blk
+        return None
+
     @typing_extensions.override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""

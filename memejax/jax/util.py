@@ -10,6 +10,7 @@ JaxArrayMap = dict[str, Array]
 JaxArrayOrMap = TypeVar("JaxArrayOrMap", Array, JaxArrayMap)
 JaxModelOutput = Any
 
+
 _ENABLE_CHEXIFY = False
 
 
