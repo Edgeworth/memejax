@@ -1,5 +1,6 @@
 import copy
 import dataclasses
+import shutil
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
@@ -274,3 +275,11 @@ class JaxTrainCfg(DataClassJsonMixin):
 
         if self.output_path == Path():
             self.output_path = Path("/tmp/memejax") / self.name  # noqa: S108
+
+    def update_name(self, name: str) -> None:
+        self.name = name
+        self.output_path = self.output_path.parent / name
+
+    def remove_output_dir(self) -> None:
+        # Delete output dir and its contents
+        shutil.rmtree(self.output_path, ignore_errors=True)
