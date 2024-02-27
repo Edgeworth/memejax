@@ -163,9 +163,11 @@ def jnp_stddev(x: jax.Array) -> Array:
     """Safe and differentiable stddev."""
     return jnp.sqrt(jnp.var(x) + 1e-8)
 
+
 @jax.jit
-def jnp_random_mask(rng: jax.random.PRNGKey, shape: tuple[int, ...]) -> Array:
+def jnp_random_mask(rng: ArrayLike, shape: tuple[int, ...]) -> Array:
     return jax.random.bernoulli(rng, 0.5, shape)
+
 
 def hvp(f: Callable, primals: tuple, tangents: tuple) -> Array:
     """Hessian-vector product."""

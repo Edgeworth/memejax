@@ -75,5 +75,6 @@ class BlkKind(StrEnum):
     NOOP = "noop"
     POSEMB = "posemb"
     RESHAPE = "reshape"
+    SAVED_MODEL = "saved_model"
     SOFTMAX = "softmax"
     TRANSFORMER = "transformer"

@@ -2,7 +2,6 @@ from pathlib import Path
 from typing import Any
 
 import flax.linen as nn
-import jax
 import jax.numpy as jnp
 import tensorflow as tf
 from orbax.export import ExportManager, JaxModule, ServingConfig
@@ -35,8 +34,18 @@ class JaxCkptInference:
         params = state["state"]["params"]
         batch_stats: JaxArrayMap = state["state"]["batch_stats"] or {}
         out = model.apply({"params": params, "batch_stats": batch_stats}, batch_inp, False)
-        print(out)
         return out
+
+    @staticmethod
+    def _subset_state(state: dict[str, Any]) -> dict[str, Any]:
+        # Record only the state we need for saving, because e.g. optax's optimisation state
+        # uses some int32s which can't be saved for GPU models.
+        return {
+            "state": {
+                "params": state["state"]["params"],
+                "batch_stats": state["state"]["batch_stats"],
+            }
+        }
 
     def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return JaxCkptInference._apply_fn(self.model, self.state, batch_inp)
@@ -54,7 +63,7 @@ class JaxCkptInference:
     def save_export(self, path: Path, metadata: str) -> None:
         # TODO(-1): fix this hardcoding for output.
         jax_module = JaxModule(
-            self.state,
+            self._subset_state(self.state),
             {
                 "predict": lambda *args: JaxCkptInference._apply_fn(self.model, *args)["alloc_out"][
                     "alloc"
@@ -87,12 +96,17 @@ class JaxSavedModelInference:
     model: Any
 
     def __init__(self, *, path: Path) -> None:
-        print(tf.config.list_logical_devices())
-        print(jax.default_backend().upper())
         self.model = tf.saved_model.load(path)
 
     def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return self.model.signatures["serving_default"](**batch_inp)["output_0"]
 
+    def tf_func(self) -> Any:
+        return lambda inp: self.model.signatures["serving_default"](**inp)
+
     def metadata(self) -> str:
         return "".join(chr(i) for i in self.model.signatures["metadata"]()["output_0"])
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> "JaxSavedModelInference":
+        # Don't allow deep copy here - it breaks usage of this in json serialization.
+        return self

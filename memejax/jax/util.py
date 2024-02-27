@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any, TypeVar
 
 import chex
@@ -60,3 +61,7 @@ def maybe_chexify(fn: Callable[..., Any]) -> Callable[..., Any]:
     if use_chexify():
         return chex.chexify(fn)
     return fn
+
+
+def resolve_path(path: Path | str) -> Path:
+    return Path(path).expanduser().resolve()

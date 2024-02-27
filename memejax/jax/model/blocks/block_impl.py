@@ -30,6 +30,7 @@ from memejax.jax.model.blocks.manipulation import (
 from memejax.jax.model.blocks.mlp import MlpBlk, MlpBlkCfg
 from memejax.jax.model.blocks.noise import GaussianNoiseBlk, GaussianNoiseBlkCfg
 from memejax.jax.model.blocks.posemb import PosEmbBlk, PosEmbBlkCfg
+from memejax.jax.model.blocks.saved_model import SavedModelBlk, SavedModelBlkCfg
 from memejax.jax.model.blocks.transformer import TransformerBlk, TransformerBlkCfg
 
 BlkCfgType: TypeAlias = (
@@ -46,6 +47,7 @@ BlkCfgType: TypeAlias = (
     | NewAxisBlkCfg
     | PosEmbBlkCfg
     | ReshapeBlkCfg
+    | SavedModelBlkCfg
     | TransformerBlkCfg
 )
 
@@ -90,6 +92,7 @@ _BLKKIND_TO_BLK_CLS = {
     BlkKind.NEWAXIS: NewAxisBlk,
     BlkKind.POSEMB: PosEmbBlk,
     BlkKind.RESHAPE: ReshapeBlk,
+    BlkKind.SAVED_MODEL: SavedModelBlk,
     BlkKind.SOFTMAX: SoftmaxBlk,
     BlkKind.TRANSFORMER: TransformerBlk,
 }
@@ -109,6 +112,7 @@ _BLKKIND_TO_BLK_CFG_CLS: dict[BlkKind, type[BlkCfgType]] = {
     BlkKind.NEWAXIS: NewAxisBlkCfg,
     BlkKind.POSEMB: PosEmbBlkCfg,
     BlkKind.RESHAPE: ReshapeBlkCfg,
+    BlkKind.SAVED_MODEL: SavedModelBlkCfg,
     BlkKind.SOFTMAX: EmptyBlkCfg,
     BlkKind.TRANSFORMER: TransformerBlkCfg,
 }
