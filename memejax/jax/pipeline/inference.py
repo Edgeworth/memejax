@@ -3,6 +3,7 @@ from typing import Any
 
 import flax.linen as nn
 import jax.numpy as jnp
+import numpy as np
 import tensorflow as tf
 from orbax.export import ExportManager, JaxModule, ServingConfig
 
@@ -102,7 +103,7 @@ class JaxSavedModelInference:
         return self.model.signatures["serving_default"](**batch_inp)["output_0"]
 
     def tf_func(self) -> Any:
-        return lambda inp: self.model.signatures["serving_default"](**inp)
+        return lambda inp: self.model.signatures["serving_default"](**inp)["output_0"]
 
     def metadata(self) -> str:
         return "".join(chr(i) for i in self.model.signatures["metadata"]()["output_0"])

@@ -103,8 +103,7 @@ def build_optuna_search_cfg_from_args(
 class OptunaParameterable(Protocol):
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
-    ) -> Any:
-        ...
+    ) -> Any: ...
 
 
 _T = TypeVar("_T", bound=StrEnum)

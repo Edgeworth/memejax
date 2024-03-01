@@ -12,6 +12,32 @@ from memejax.jax.model.blocks.cfg import EmptyBlkCfg
 from memejax.jax.util import JaxArrayOrMap, apply_arrayormap
 
 
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass(eq=True, kw_only=True, order=True, frozen=True)
+class MergeInputsBlkCfg(OptunaParameterable, DataClassJsonMixin):
+    output_key: str = "x"
+
+    @typing_extensions.override
+    def optuna_params(
+        self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
+    ) -> "MergeInputsBlkCfg":
+        return self
+
+
+class MergeInputsBlk(nn.Module):
+    blk_cfg: MergeInputsBlkCfg
+
+    @nn.compact
+    def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
+        # Merge all inputs into a single output.
+        # Sort values by key to ensure consistent order.
+        values = [inp[k] for k in sorted(inp.keys())]
+        print("values:", values)
+        print("values shapes:", [v.shape for v in values])
+        print("concat: ", jnp.concatenate(values, axis=0))
+        return {self.blk_cfg.output_key: jnp.concatenate(values, axis=0)}
+
+
 class SoftmaxBlk(nn.Module):
     def apply_array(self, _key: str, x: Array, _train: bool) -> Array:
         x = nn.softmax(x)

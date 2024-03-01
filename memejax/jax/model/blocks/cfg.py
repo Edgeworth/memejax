@@ -56,8 +56,7 @@ class ModelCfg(OptunaParameterable, DataClassJsonMixin):
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass(eq=True, kw_only=True, order=True, frozen=True)
-class EmptyBlkCfg(OptunaParameterable, DataClassJsonMixin):
-    ...
+class EmptyBlkCfg(OptunaParameterable, DataClassJsonMixin): ...
 
 
 class BlkKind(StrEnum):
@@ -71,6 +70,7 @@ class BlkKind(StrEnum):
     LOSS_KL_DIVERGENCE = "loss_kl_divergence"
     NEWAXIS = "newaxis"
     MASK = "mask"
+    MERGE_INPUTS = "merge_inputs"
     MLP = "mlp"
     NOOP = "noop"
     POSEMB = "posemb"
