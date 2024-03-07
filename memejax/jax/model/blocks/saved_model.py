@@ -7,7 +7,6 @@ import flax.linen as nn
 import jax
 import numpy as np
 import optuna
-import tensorflow as tf
 import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Exclude, Undefined, config, dataclass_json
 from jax.experimental import jax2tf
@@ -31,6 +30,9 @@ class SavedModelBlkCfg(OptunaParameterable, DataClassJsonMixin):
         assert path.is_dir(), f"File not found: {path}"
         object.__setattr__(self, "sm", JaxSavedModelInference(path=path))
 
+    def set_save(self, save: bool) -> None:
+        self.sm.set_set(save)
+
     @typing_extensions.override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
@@ -45,7 +47,10 @@ class SavedModelBlk(nn.Module):
     def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
         fn = self.blk_cfg.sm.tf_func()
         batching.primitive_batchers[call_tf_p] = functools.partial(_tf_passthrough_batcher, fn, inp)
-        output = {self.blk_cfg.output_key: jax2tf.call_tf(fn)(inp)}
+        # call_tf_graph supports polymorphic inputs for saving to a SavedModel.
+        # But, it does not work for training / running at all, just for saving.
+        save = self.blk_cfg.sm.save
+        output = {self.blk_cfg.output_key: jax2tf.call_tf(fn, call_tf_graph=save)(inp)}
         return output
 
 
@@ -61,6 +66,7 @@ def _tf_passthrough_batcher(
     inp: JaxArrayOrMap,
     batched_args: tuple,
     batched_dims: tuple,
+    call_tf_graph: bool,
     callable_flat_tf: Callable[[list[TfVal]], Sequence[TfVal]],
     **_kwargs: dict,
 ) -> tuple:
@@ -78,5 +84,7 @@ def _tf_passthrough_batcher(
     # Assumes a single output.
     output_shape_dtype = _ShapeAndDtype(shape=output_shape, dtype=np.float32)
     args = treedef.unflatten(batched_args)
-    ret = jax2tf.call_tf(fn, output_shape_dtype=output_shape_dtype)(args)
+    ret = jax2tf.call_tf(fn, call_tf_graph=call_tf_graph, output_shape_dtype=output_shape_dtype)(
+        args
+    )
     return ([ret], (0,))

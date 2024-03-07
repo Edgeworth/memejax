@@ -3,7 +3,6 @@ from typing import Any
 
 import flax.linen as nn
 import jax.numpy as jnp
-import numpy as np
 import tensorflow as tf
 from orbax.export import ExportManager, JaxModule, ServingConfig
 
@@ -61,7 +60,9 @@ class JaxCkptInference:
         }
         return [data_signature]
 
-    def save_export(self, path: Path, metadata: str) -> None:
+    def save_export(
+        self, path: Path, metadata: str, extra_trackable_resources: list | None = None
+    ) -> None:
         # TODO(-1): fix this hardcoding for output.
         jax_module = JaxModule(
             self._subset_state(self.state),
@@ -80,6 +81,7 @@ class JaxCkptInference:
                 "serving_default",
                 input_signature=self._array_map_to_input_signature(self.batched_inp),
                 method_key="predict",
+                extra_trackable_resources=extra_trackable_resources,
             ),
             ServingConfig(
                 "metadata",
@@ -89,15 +91,34 @@ class JaxCkptInference:
                 method_key="metadata",
             ),
         ]
-        export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
-        export_mgr.save(path)
+        if tf.executing_eagerly():
+            export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
+            export_mgr.save(path)
+        else:
+            with tf.compat.v1.Session(
+                graph=extra_trackable_resources[0].graph
+            ).as_default() as sess:
+                # Run initializers
+                if extra_trackable_resources:
+                    sess.run([v.initializer for v in extra_trackable_resources])
+                sess.run([v.initializer for v in jax_module.variables])
+
+                export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
+                export_mgr.save(path)
 
 
 class JaxSavedModelInference:
     model: Any
+    save: bool = False
 
     def __init__(self, *, path: Path) -> None:
         self.model = tf.saved_model.load(path)
+
+    def set_save(self, save: bool) -> None:
+        # If we are saving this saved model, we need to use the graph mode
+        # and call_tf_graph.
+        self.save = save
+        assert save != tf.executing_eagerly(), "for saving, disable eager execution"
 
     def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return self.model.signatures["serving_default"](**batch_inp)["output_0"]
@@ -107,6 +128,9 @@ class JaxSavedModelInference:
 
     def metadata(self) -> str:
         return "".join(chr(i) for i in self.model.signatures["metadata"]()["output_0"])
+
+    def extra_trackable_resources(self) -> list:
+        return self.model.signatures["serving_default"].variables
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "JaxSavedModelInference":
         # Don't allow deep copy here - it breaks usage of this in json serialization.

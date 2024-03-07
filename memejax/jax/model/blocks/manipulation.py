@@ -32,9 +32,6 @@ class MergeInputsBlk(nn.Module):
         # Merge all inputs into a single output.
         # Sort values by key to ensure consistent order.
         values = [inp[k] for k in sorted(inp.keys())]
-        print("values:", values)
-        print("values shapes:", [v.shape for v in values])
-        print("concat: ", jnp.concatenate(values, axis=0))
         return {self.blk_cfg.output_key: jnp.concatenate(values, axis=0)}
 
 

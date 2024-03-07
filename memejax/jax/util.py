@@ -22,8 +22,9 @@ def init_jax(*, cpu: bool = False) -> None:
     port = portpicker.pick_unused_port()
     jax.distributed.initialize(f"localhost:{port}", num_processes=1, process_id=0)
     # See https://github.com/google/jax/blob/main/jax/experimental/jax2tf/README.md#native-serialization-versions
-    config.update("jax2tf_default_native_serialization", True)
-    # TODO(1): Bump this when upgrading tensorflow to >=2.16.0
+    config.update("jax2tf_default_native_serialization", False)
+    # TODO(1): Bump this when upgrading tensorflow to >=2.16.0. No effect if native serialisation is
+    # off (False).
     config.update("jax_serialization_version", 8)
     jax.random.PRNGKey(0)  # work around https://github.com/google/jax/issues/16107
 
