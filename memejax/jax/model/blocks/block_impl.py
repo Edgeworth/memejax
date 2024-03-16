@@ -51,6 +51,7 @@ BlkCfgType: TypeAlias = (
     | NewAxisBlkCfg
     | PosEmbBlkCfg
     | ReshapeBlkCfg
+    | SavedCkptBlkCfg
     | SavedModelBlkCfg
     | TransformerBlkCfg
 )

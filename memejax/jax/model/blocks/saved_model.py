@@ -2,6 +2,7 @@ import functools
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import cast
 
 import flax.linen as nn
 import jax
@@ -31,7 +32,7 @@ class SavedModelBlkCfg(OptunaParameterable, DataClassJsonMixin):
         object.__setattr__(self, "sm", JaxSavedModelInference(path=path))
 
     def set_save(self, save: bool) -> None:
-        self.sm.set_set(save)
+        self.sm.set_save(save)
 
     @typing_extensions.override
     def optuna_params(
@@ -51,13 +52,13 @@ class SavedModelBlk(nn.Module):
         # But, it does not work for training / running at all, just for saving.
         save = self.blk_cfg.sm.save
         output = {self.blk_cfg.output_key: jax2tf.call_tf(fn, call_tf_graph=save)(inp)}
-        return output
+        return cast(JaxArrayOrMap, output)
 
 
 @dataclass(eq=True, kw_only=True, order=True, frozen=True)
 class _ShapeAndDtype:
     shape: tuple
-    dtype: np.dtype
+    dtype: type
 
 
 # Passthrough batcher for tf saved models. Assumes the first dimension is batched and no other.
@@ -76,13 +77,13 @@ def _tf_passthrough_batcher(
     # Map non-integers to 1 to handle polymorphic inputs, e.g. on save.
     input_shape = tuple([int(v) if isinstance(v, int) else 1 for v in batched_args[0].shape])
     # Force call callable_flat_tf to fill `res_treedef` inside it.
-    out = callable_flat_tf(np.zeros(input_shape))
+    out = callable_flat_tf(np.zeros(input_shape))  # type: ignore[arg-type]
     assert len(out) == 1
-    output_shape = out[0].shape
+    output_shape: list[int] = list(out[0].shape)
     # Grab value which may be non-integer (polymorphic) from the batch dimension.
-    output_shape = (batched_args[0].shape[0], *list(output_shape[1:]))
+    batched_output_shape = (batched_args[0].shape[0], *output_shape[1:])
     # Assumes a single output.
-    output_shape_dtype = _ShapeAndDtype(shape=output_shape, dtype=np.float32)
+    output_shape_dtype = _ShapeAndDtype(shape=batched_output_shape, dtype=np.float32)
     args = treedef.unflatten(batched_args)
     ret = jax2tf.call_tf(fn, call_tf_graph=call_tf_graph, output_shape_dtype=output_shape_dtype)(
         args

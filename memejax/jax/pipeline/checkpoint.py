@@ -28,7 +28,7 @@ def make_checkpoint_manager(
     )
 
 
-def select_checkpoint(path: Path, best: bool, step: int | None) -> Any:
+def select_checkpoint(path: Path, best: bool, step: int | None = None) -> Any:
     print(f"Loading from checkpoint at {path}")
     mgr = make_checkpoint_manager(path)
     if step is None:

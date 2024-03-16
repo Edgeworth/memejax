@@ -35,6 +35,6 @@ class SavedCkptBlk(nn.Module):
     blk_cfg: SavedCkptBlkCfg
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
+    def __call__(self, _inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
         # TODO(-1): implement
-        return {}
+        return _inp

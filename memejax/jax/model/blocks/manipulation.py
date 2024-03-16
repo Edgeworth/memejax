@@ -9,7 +9,7 @@ from jax import Array
 
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
 from memejax.jax.model.blocks.cfg import EmptyBlkCfg
-from memejax.jax.util import JaxArrayOrMap, apply_arrayormap
+from memejax.jax.util import JaxArrayMap, JaxArrayOrMap, apply_arrayormap
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -28,7 +28,7 @@ class MergeInputsBlk(nn.Module):
     blk_cfg: MergeInputsBlkCfg
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
+    def __call__(self, inp: JaxArrayMap, _train: bool) -> JaxArrayMap:
         # Merge all inputs into a single output.
         # Sort values by key to ensure consistent order.
         values = [inp[k] for k in sorted(inp.keys())]

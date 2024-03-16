@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import flax.linen as nn
 import jax.numpy as jnp
@@ -95,6 +95,7 @@ class JaxCkptInference:
             export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
             export_mgr.save(path)
         else:
+            assert extra_trackable_resources, "extra_trackable_resources required for graph mode"
             with tf.compat.v1.Session(
                 graph=extra_trackable_resources[0].graph
             ).as_default() as sess:
@@ -130,7 +131,8 @@ class JaxSavedModelInference:
         return "".join(chr(i) for i in self.model.signatures["metadata"]()["output_0"])
 
     def extra_trackable_resources(self) -> list:
-        return self.model.signatures["serving_default"].variables
+        variables = self.model.signatures["serving_default"].variables
+        return cast(list, variables)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "JaxSavedModelInference":
         # Don't allow deep copy here - it breaks usage of this in json serialization.
