@@ -121,7 +121,7 @@ class JaxPipeline:
                 print(f"SAVED CHECKPOINT! forced: {force_save}")
             print(f"  best saved loss: {self.best_ckpt_loss:.4f} on epoch {self.best_ckpt_epoch}")
 
-    def train_epoch(self, epoch: int, max_epochs: int) -> DeviceMetricDict:
+    def train_epoch(self, epoch: int, max_epochs: int) -> tuple[DeviceMetricDict, DeviceMetricDict]:
         train_dmdict, example_train = self._train_epoch(
             meta=JaxTrainMeta.from_data(epoch, max_epochs)
         )
@@ -136,14 +136,14 @@ class JaxPipeline:
         if self.example_fn:
             self.example_fn(example_train, example_valid)
 
-        return valid_dmdict
+        return (train_dmdict, valid_dmdict)
 
-    def train(self, epochs: int) -> DeviceMetricDict:
-        last_valid_dmdict = None
+    def train(self, epochs: int) -> tuple[DeviceMetricDict, DeviceMetricDict]:
+        last_dmdicts = None
         for i in range(epochs):
-            last_valid_dmdict = self.train_epoch(i, epochs)
-        assert last_valid_dmdict
-        return last_valid_dmdict
+            last_dmdicts = self.train_epoch(i, epochs)
+        assert last_dmdicts
+        return last_dmdicts
 
     def inference(self, batch_inp: JaxArrayMap) -> JaxModelOutput:
         return self.trainer.inference(batch_inp)
