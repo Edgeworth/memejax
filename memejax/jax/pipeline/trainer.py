@@ -129,7 +129,9 @@ class JaxTrainer:
         # Provide one sample to initialize the model.
         self.rng, rng = jax.random.split(rng)
         variables = self.model.init(rng, batched_inp, False)
-        params = variables["params"]
+        # params may not exist if there are no trainable parameters. This can happen if e.g. only
+        # jax operations are used.
+        params = variables.get("params", {})
         batch_stats = variables.get("batch_stats", {})
 
         param_count = jax.tree_util.tree_reduce(
@@ -294,9 +296,11 @@ class JaxTrainer:
         assert last_output
         total_dmdict = slow_div_mdict(total_dmdict, num_batches)
 
-        assert last_grads
         # TODO(0): move to reporter, output to tensorboard as well.
-        if self.cfg.check_epochs and self.check_count % self.cfg.check_epochs == 0:
+        # `last_grads` may be null if there are no trainable parameters.
+        # This may happen e.g. training ensemble models where only jax operations are used to
+        # combine the outputs.
+        if last_grads and self.cfg.check_epochs and self.check_count % self.cfg.check_epochs == 0:
             if JaxTrainer._check_grads_zero(last_grads):
                 self.grad_zero_count += 1
             else:

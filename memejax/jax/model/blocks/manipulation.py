@@ -40,7 +40,7 @@ class StackInputsBlk(nn.Module):
     blk_cfg: MapInputsBlkCfg
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
+    def __call__(self, inp: JaxArrayMap, _train: bool) -> JaxArrayMap:
         # Merge all inputs into a single output.
         # Sort values by key to ensure consistent order.
         values = [inp[k] for k in sorted(inp.keys())]
@@ -85,9 +85,12 @@ class ConcatBlk(nn.Module):
 
 
 class AxisOp(StrEnum):
-    NEW_AXIS = "new_axis"
+    # Differentiable:
     MEAN = "mean"
     SUM = "sum"
+    NEW_AXIS = "new_axis"
+
+    # Non-differentiable:
     MAX = "max"
     MIN = "min"
 
@@ -120,6 +123,51 @@ class AxisOpBlk(nn.Module):
                 return jnp.max(x, axis=self.blk_cfg.axis)
             case AxisOp.MIN:
                 return jnp.min(x, axis=self.blk_cfg.axis)
+
+    @nn.compact
+    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+        return apply_arrayormap(inp, train, self.apply_array)
+
+
+class BinOp(StrEnum):
+    MUL = "mul"
+    DIV = "div"
+    ADD = "add"
+    SUB = "sub"
+    EXP = "exp"
+    LOG = "log"
+
+
+@dataclass_json(undefined=Undefined.RAISE)
+@dataclass(eq=True, kw_only=True, order=True, frozen=True)
+class BinOpBlkCfg(OptunaParameterable, DataClassJsonMixin):
+    op: BinOp
+    value: float = 1.0
+
+    @typing_extensions.override
+    def optuna_params(
+        self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
+    ) -> "BinOpBlkCfg":
+        return self
+
+
+class BinOpBlk(nn.Module):
+    blk_cfg: BinOpBlkCfg
+
+    def apply_array(self, _key: str, x: Array, _train: bool) -> Array:
+        match self.blk_cfg.op:
+            case BinOp.MUL:
+                return x * self.blk_cfg.value
+            case BinOp.DIV:
+                return x / self.blk_cfg.value
+            case BinOp.ADD:
+                return x + self.blk_cfg.value
+            case BinOp.SUB:
+                return x - self.blk_cfg.value
+            case BinOp.EXP:
+                return x**self.blk_cfg.value
+            case BinOp.LOG:
+                return jnp.log(x) / jnp.log(self.blk_cfg.value)
 
     @nn.compact
     def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:

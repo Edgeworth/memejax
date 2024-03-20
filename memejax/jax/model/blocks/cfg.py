@@ -69,6 +69,7 @@ class BlkKind(StrEnum):
     LOSS_MSE = "loss_mse"
     LOSS_KL_DIVERGENCE = "loss_kl_divergence"
     AXIS_OP = "axis_op"
+    BIN_OP = "bin_op"
     MASK = "mask"
     CONCAT_INPUTS = "concat_inputs"
     MEAN = "mean"

@@ -18,6 +18,8 @@ from memejax.jax.model.blocks.loss import (
 from memejax.jax.model.blocks.manipulation import (
     AxisOpBlk,
     AxisOpBlkCfg,
+    BinOpBlk,
+    BinOpBlkCfg,
     ConcatBlk,
     ConcatBlkCfg,
     ConcatInputsBlk,
@@ -50,6 +52,7 @@ BlkCfgType: TypeAlias = (
     | MapInputsBlkCfg
     | MlpBlkCfg
     | AxisOpBlkCfg
+    | BinOpBlkCfg
     | PosEmbBlkCfg
     | ReshapeBlkCfg
     | SavedCkptBlkCfg
@@ -97,6 +100,7 @@ _BLKKIND_TO_BLK_CLS = {
     BlkKind.CONCAT_INPUTS: ConcatInputsBlk,
     BlkKind.NOOP: NoopBlk,
     BlkKind.AXIS_OP: AxisOpBlk,
+    BlkKind.BIN_OP: BinOpBlk,
     BlkKind.POSEMB: PosEmbBlk,
     BlkKind.RESHAPE: ReshapeBlk,
     BlkKind.SAVED_CKPT: SavedCkptBlk,
@@ -120,6 +124,7 @@ _BLKKIND_TO_BLK_CFG_CLS: dict[BlkKind, type[BlkCfgType]] = {
     BlkKind.CONCAT_INPUTS: MapInputsBlkCfg,
     BlkKind.NOOP: EmptyBlkCfg,
     BlkKind.AXIS_OP: AxisOpBlkCfg,
+    BlkKind.BIN_OP: BinOpBlkCfg,
     BlkKind.POSEMB: PosEmbBlkCfg,
     BlkKind.RESHAPE: ReshapeBlkCfg,
     BlkKind.SAVED_CKPT: SavedCkptBlkCfg,
