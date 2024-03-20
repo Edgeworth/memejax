@@ -16,18 +16,19 @@ from memejax.jax.model.blocks.loss import (
     LossPredictionCfg,
 )
 from memejax.jax.model.blocks.manipulation import (
+    AxisOpBlk,
+    AxisOpBlkCfg,
     ConcatBlk,
     ConcatBlkCfg,
+    ConcatInputsBlk,
+    MapInputsBlkCfg,
     MaskBlk,
     MaskBlkCfg,
-    MergeInputsBlk,
-    MergeInputsBlkCfg,
-    NewAxisBlk,
-    NewAxisBlkCfg,
     NoopBlk,
     ReshapeBlk,
     ReshapeBlkCfg,
     SoftmaxBlk,
+    StackInputsBlk,
 )
 from memejax.jax.model.blocks.mlp import MlpBlk, MlpBlkCfg
 from memejax.jax.model.blocks.noise import GaussianNoiseBlk, GaussianNoiseBlkCfg
@@ -46,9 +47,9 @@ BlkCfgType: TypeAlias = (
     | LossPredictionCfg
     | LossLogPredictionCfg
     | MaskBlkCfg
-    | MergeInputsBlkCfg
+    | MapInputsBlkCfg
     | MlpBlkCfg
-    | NewAxisBlkCfg
+    | AxisOpBlkCfg
     | PosEmbBlkCfg
     | ReshapeBlkCfg
     | SavedCkptBlkCfg
@@ -93,14 +94,15 @@ _BLKKIND_TO_BLK_CLS = {
     BlkKind.LOSS_KL_DIVERGENCE: LossKLDivergenceBlk,
     BlkKind.MLP: MlpBlk,
     BlkKind.MASK: MaskBlk,
-    BlkKind.MERGE_INPUTS: MergeInputsBlk,
+    BlkKind.CONCAT_INPUTS: ConcatInputsBlk,
     BlkKind.NOOP: NoopBlk,
-    BlkKind.NEWAXIS: NewAxisBlk,
+    BlkKind.AXIS_OP: AxisOpBlk,
     BlkKind.POSEMB: PosEmbBlk,
     BlkKind.RESHAPE: ReshapeBlk,
     BlkKind.SAVED_CKPT: SavedCkptBlk,
     BlkKind.SAVED_MODEL: SavedModelBlk,
     BlkKind.SOFTMAX: SoftmaxBlk,
+    BlkKind.STACK_INPUTS: StackInputsBlk,
     BlkKind.TRANSFORMER: TransformerBlk,
 }
 
@@ -115,13 +117,14 @@ _BLKKIND_TO_BLK_CFG_CLS: dict[BlkKind, type[BlkCfgType]] = {
     BlkKind.LOSS_KL_DIVERGENCE: LossLogPredictionCfg,
     BlkKind.MLP: MlpBlkCfg,
     BlkKind.MASK: MaskBlkCfg,
-    BlkKind.MERGE_INPUTS: MergeInputsBlkCfg,
+    BlkKind.CONCAT_INPUTS: MapInputsBlkCfg,
     BlkKind.NOOP: EmptyBlkCfg,
-    BlkKind.NEWAXIS: NewAxisBlkCfg,
+    BlkKind.AXIS_OP: AxisOpBlkCfg,
     BlkKind.POSEMB: PosEmbBlkCfg,
     BlkKind.RESHAPE: ReshapeBlkCfg,
     BlkKind.SAVED_CKPT: SavedCkptBlkCfg,
     BlkKind.SAVED_MODEL: SavedModelBlkCfg,
     BlkKind.SOFTMAX: EmptyBlkCfg,
+    BlkKind.STACK_INPUTS: MapInputsBlkCfg,
     BlkKind.TRANSFORMER: TransformerBlkCfg,
 }

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import StrEnum
 
 import flax.linen as nn
 import jax.numpy as jnp
@@ -14,18 +15,18 @@ from memejax.jax.util import JaxArrayMap, JaxArrayOrMap, apply_arrayormap
 
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass(eq=True, kw_only=True, order=True, frozen=True)
-class MergeInputsBlkCfg(OptunaParameterable, DataClassJsonMixin):
+class MapInputsBlkCfg(OptunaParameterable, DataClassJsonMixin):
     output_key: str = "x"
 
     @typing_extensions.override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
-    ) -> "MergeInputsBlkCfg":
+    ) -> "MapInputsBlkCfg":
         return self
 
 
-class MergeInputsBlk(nn.Module):
-    blk_cfg: MergeInputsBlkCfg
+class ConcatInputsBlk(nn.Module):
+    blk_cfg: MapInputsBlkCfg
 
     @nn.compact
     def __call__(self, inp: JaxArrayMap, _train: bool) -> JaxArrayMap:
@@ -33,6 +34,17 @@ class MergeInputsBlk(nn.Module):
         # Sort values by key to ensure consistent order.
         values = [inp[k] for k in sorted(inp.keys())]
         return {self.blk_cfg.output_key: jnp.concatenate(values, axis=0)}
+
+
+class StackInputsBlk(nn.Module):
+    blk_cfg: MapInputsBlkCfg
+
+    @nn.compact
+    def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
+        # Merge all inputs into a single output.
+        # Sort values by key to ensure consistent order.
+        values = [inp[k] for k in sorted(inp.keys())]
+        return {self.blk_cfg.output_key: jnp.stack(values)}
 
 
 class SoftmaxBlk(nn.Module):
@@ -72,21 +84,42 @@ class ConcatBlk(nn.Module):
         return apply_arrayormap(inp, train, self.apply_array)
 
 
+class AxisOp(StrEnum):
+    NEW_AXIS = "new_axis"
+    MEAN = "mean"
+    SUM = "sum"
+    MAX = "max"
+    MIN = "min"
+
+
 @dataclass_json(undefined=Undefined.RAISE)
 @dataclass(eq=True, kw_only=True, order=True, frozen=True)
-class NewAxisBlkCfg(OptunaParameterable, DataClassJsonMixin):
+class AxisOpBlkCfg(OptunaParameterable, DataClassJsonMixin):
+    op: AxisOp
     axis: int = -1
 
     @typing_extensions.override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
-    ) -> "NewAxisBlkCfg":
+    ) -> "AxisOpBlkCfg":
         return self
 
 
-class NewAxisBlk(nn.Module):
+class AxisOpBlk(nn.Module):
+    blk_cfg: AxisOpBlkCfg
+
     def apply_array(self, _key: str, x: Array, _train: bool) -> Array:
-        return jnp.expand_dims(x, axis=self.blk_cfg.axis)
+        match self.blk_cfg.op:
+            case AxisOp.NEW_AXIS:
+                return jnp.expand_dims(x, axis=self.blk_cfg.axis)
+            case AxisOp.MEAN:
+                return jnp.mean(x, axis=self.blk_cfg.axis)
+            case AxisOp.SUM:
+                return jnp.sum(x, axis=self.blk_cfg.axis)
+            case AxisOp.MAX:
+                return jnp.max(x, axis=self.blk_cfg.axis)
+            case AxisOp.MIN:
+                return jnp.min(x, axis=self.blk_cfg.axis)
 
     @nn.compact
     def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
