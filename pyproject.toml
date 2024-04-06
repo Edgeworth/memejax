@@ -23,7 +23,6 @@ optax = ">=0.2.2"
 optuna = ">=3.6.1"
 orbax-checkpoint = ">=0.5.7"
 orbax-export = ">=0.0.4"
-pandas = ">=2.2.1"
 portpicker = ">=1.6.0"
 python = "~3.11"
 typing-extensions = ">=4.10.0"
@@ -76,7 +75,6 @@ module = [
   "numpy.*",
   "optax.*",
   "orbax.*",
-  "pandas.*",
   "portpicker.*",
   "tensorflow.*",
   "json5.*",
