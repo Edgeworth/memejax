@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 import pandas as pd
@@ -40,7 +41,7 @@ def timeseries_window_sets(
 
     # Cur time denotes the time at the middle of the window - the present
     # (splitting past and future).
-    cur_ts = max(df.index.min() for df in data.values())
+    cur_time = max(df.index.min() for df in data.values())
 
     # Shape: (num samples, num keys, past/future (2), start/end index (2))
     window_sets: list[WindowSet] = []
@@ -60,14 +61,16 @@ def timeseries_window_sets(
             # Advance the window of this key so its present range contains cur_time.
             # Exit if we run out of data.
             key_cnt = key.past_cnt + key.fut_cnt
-            while idxs[i] + key_cnt < len(df_index) and df_index[idxs[i] + key.past_cnt] <= cur_ts:
+            while (
+                idxs[i] + key_cnt < len(df_index) and df_index[idxs[i] + key.past_cnt] <= cur_time
+            ):
                 idxs[i] += 1
 
             # If this window starts after the current time, advance the
             # current time. This may happen if past_cnt is very large, for
             # example.
-            if cur_ts < df_index[idxs[i] + key.past_cnt - 1]:
-                cur_ts = df_index[idxs[i] + key.past_cnt - 1]
+            if cur_time < df_index[idxs[i] + key.past_cnt - 1]:
+                cur_time = df_index[idxs[i] + key.past_cnt - 1]
                 found_window_set = False
 
         if found_window_set:
@@ -85,17 +88,17 @@ def timeseries_window_sets(
             # the earliest next time from all keys. If the future window is
             # size zero, we may end here if all past windows are at the end
             # of each key's data.
-            next_ts = None
+            next_time = None
             for i, key in enumerate(keys):
                 df_index = df_indexes[key]
                 idx = idxs[i] + key.past_cnt
-                if idx < len(df_index) and (next_ts is None or df_index[idx] < next_ts):
-                    next_ts = df_index[idx]
+                if idx < len(df_index) and (next_time is None or df_index[idx] < next_time):
+                    next_time = df_index[idx]
             # We are done if all keys are at the end of their data
-            if next_ts is None or next_ts <= cur_ts:
+            if next_time is None or next_time <= cur_time:
                 done = True
             else:
-                cur_ts = next_ts
+                cur_time = next_time
     print(f"Computed {len(window_sets)} data windows")
     return window_sets
 
@@ -128,27 +131,27 @@ def timestamp_one_hot(parts: list[tuple[int, int]]) -> list[float]:
     return onehot
 
 
-def mdwtime_one_hot(ts: pd.Timestamp) -> list[float]:
+def mdwtime_one_hot(dt: datetime) -> list[float]:
     parts = [
-        (ts.month - 1, 12),
-        (ts.day - 1, 31),
-        (ts.weekday(), 7),
-        (ts.hour, 24),
-        (ts.minute, 60),
+        (dt.month - 1, 12),
+        (dt.day - 1, 31),
+        (dt.weekday(), 7),
+        (dt.hour, 24),
+        (dt.minute, 60),
     ]
     return timestamp_one_hot(parts)
 
 
-def dwtime_one_hot(ts: pd.Timestamp) -> list[float]:
-    parts = [(ts.day - 1, 31), (ts.weekday(), 7), (ts.hour, 24), (ts.minute, 60)]
+def dwtime_one_hot(dt: datetime) -> list[float]:
+    parts = [(dt.day - 1, 31), (dt.weekday(), 7), (dt.hour, 24), (dt.minute, 60)]
     return timestamp_one_hot(parts)
 
 
-def wtime_one_hot(ts: pd.Timestamp) -> list[float]:
-    parts = [(ts.weekday(), 7), (ts.hour, 24), (ts.minute, 60)]
+def wtime_one_hot(dt: datetime) -> list[float]:
+    parts = [(dt.weekday(), 7), (dt.hour, 24), (dt.minute, 60)]
     return timestamp_one_hot(parts)
 
 
-def time_one_hot(ts: pd.Timestamp) -> list[float]:
-    parts = [(ts.hour, 24), (ts.minute, 60)]
+def time_one_hot(dt: datetime) -> list[float]:
+    parts = [(dt.hour, 24), (dt.minute, 60)]
     return timestamp_one_hot(parts)
