@@ -95,10 +95,15 @@ class JaxCkptInference:
             export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
             export_mgr.save(path)
         else:
-            assert extra_trackable_resources, "extra_trackable_resources required for graph mode"
-            with tf.compat.v1.Session(
-                graph=extra_trackable_resources[0].graph
-            ).as_default() as sess:
+            assert (
+                extra_trackable_resources is not None
+            ), "extra_trackable_resources required for graph mode"
+            graph = (
+                extra_trackable_resources[0].graph
+                if extra_trackable_resources
+                else tf.compat.v1.get_default_graph()
+            )
+            with tf.compat.v1.Session(graph=graph).as_default() as sess:
                 # Run initializers
                 if extra_trackable_resources:
                     sess.run([v.initializer for v in extra_trackable_resources])

@@ -89,7 +89,7 @@ def jnp_cum_soft_min(arr: Array) -> Array:
 
 @jax.jit
 def jnp_leaky_heaviside(
-    x: Array, threshold: float, transition_width: float = 1e-6, out_slope: float = 0.01
+    x: Array, threshold: float, transition_width: float = 1e-6, out_slope: float = 1e-6
 ) -> Array:
     # Keep transition width small, as it isn't that important but can cause
     # issues if it's too big.
