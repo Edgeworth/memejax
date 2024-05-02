@@ -96,27 +96,36 @@ class JaxArrayMapDataset(JaxDataset):
         random: bool = True,
         reverse: bool = False,
     ) -> Iterator[JaxTrainData]:
+        num_samples = self.num_samples()
         if num_batches < 0:
-            num_batches = self.num_samples()  # large number so it uses all batches
-        num_batches = min(self.num_samples() // batch_size, num_batches)
+            num_batches = num_samples  # large number so it uses all batches
+        num_batches = min(num_samples // batch_size, num_batches)
+        odd_batch_samples = num_samples % batch_size
         batch_samples = num_batches * batch_size
 
         if random:
             assert not reverse
-            idxs = jax.random.permutation(rng, self.num_samples())
+            idxs = jax.random.permutation(rng, num_samples)
+            odd_idxs = idxs[batch_samples : batch_samples + odd_batch_samples]
             idxs = idxs[:batch_samples]
             idxs = idxs.reshape((num_batches, batch_size))
         elif reverse:
             idxs = jnp.arange(self.num_samples() - 1, -1, -1)
+            odd_idxs = idxs[batch_samples : batch_samples + odd_batch_samples]
             idxs = idxs[:batch_samples]
             idxs = idxs.reshape((num_batches, batch_size))
         else:
-            idxs = jnp.arange(batch_samples)
+            idxs = jnp.arange(num_samples)
+            odd_idxs = idxs[batch_samples : batch_samples + odd_batch_samples]
+            idxs = idxs[:batch_samples]
             idxs = idxs.reshape((num_batches, batch_size))
 
         # Could do vmap if we let this function return a JaxArrayMap of
         # (num_batches, batch_size, ...), but this is fast enough for now.
         batches = [self.data.select_by_idxs(batch_idxs) for batch_idxs in idxs]
+        if odd_batch_samples > 0:
+            odd_batch = self.data.select_by_idxs(odd_idxs)
+            batches.append(odd_batch)
         return iter(batches)
 
     def num_samples(self) -> int:
