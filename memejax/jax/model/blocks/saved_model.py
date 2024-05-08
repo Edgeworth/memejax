@@ -2,13 +2,12 @@ import functools
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
+from typing import cast, override
 
 import flax.linen as nn
 import jax
 import numpy as np
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Exclude, Undefined, config, dataclass_json
 from jax.experimental import jax2tf
 from jax.experimental.jax2tf.call_tf import TfVal, call_tf_p
@@ -34,7 +33,7 @@ class SavedModelBlkCfg(OptunaParameterable, DataClassJsonMixin):
     def set_save(self, save: bool) -> None:
         self.sm.set_save(save)
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "SavedModelBlkCfg":

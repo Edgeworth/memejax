@@ -2,12 +2,11 @@ import copy
 from dataclasses import dataclass, field
 from functools import partial
 from graphlib import TopologicalSorter
-from typing import Any
+from typing import Any, override
 
 import flax.linen as nn
 import jax
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, config, dataclass_json
 from flax.core.scope import VariableDict
 
@@ -58,7 +57,7 @@ class CompoundBlkCfg(OptunaParameterable, DataClassJsonMixin):
                 return blk
         return None
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "CompoundBlkCfg":

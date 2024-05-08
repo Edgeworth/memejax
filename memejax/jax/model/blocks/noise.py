@@ -1,11 +1,11 @@
 import copy
 import dataclasses
 from dataclasses import dataclass
+from typing import override
 
 import flax.linen as nn
 import jax
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
@@ -19,7 +19,7 @@ class GaussianNoiseBlkCfg(OptunaParameterable, DataClassJsonMixin):
     mean: float = 0.0
     stddev: float = 1.0
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "GaussianNoiseBlkCfg":

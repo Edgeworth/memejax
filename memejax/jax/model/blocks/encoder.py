@@ -1,12 +1,12 @@
 import copy
 import dataclasses
 from dataclasses import dataclass
+from typing import override
 
 import flax.linen as nn
 import jax
 import numpy as np
 import optuna
-import typing_extensions
 from chex import assert_shape
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
@@ -25,7 +25,7 @@ class EncoderBlkCfg(OptunaParameterable, DataClassJsonMixin):
     features: int = 32
     outputs: Variable
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "EncoderBlkCfg":

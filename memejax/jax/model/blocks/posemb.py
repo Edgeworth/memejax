@@ -1,10 +1,10 @@
 import copy
 import dataclasses
 from dataclasses import dataclass
+from typing import override
 
 import flax.linen as nn
 import optuna
-import typing_extensions
 from chex import assert_rank
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
@@ -20,7 +20,7 @@ from memejax.jax.util import JaxArrayOrMap, apply_arrayormap
 class PosEmbBlkCfg(OptunaParameterable, DataClassJsonMixin):
     learnable: bool = False
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "PosEmbBlkCfg":

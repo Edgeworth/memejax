@@ -2,10 +2,9 @@ import copy
 import dataclasses
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, override
 
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jinja2 import Template
 
@@ -39,7 +38,7 @@ class ModelCfg(OptunaParameterable, DataClassJsonMixin):
     def resolve_int(self, v: Variable) -> int:
         return int(self.resolve(v))
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "ModelCfg":

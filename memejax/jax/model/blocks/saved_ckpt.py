@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, override
 
 import flax.linen as nn
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Exclude, Undefined, config, dataclass_json
 
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
@@ -24,7 +23,7 @@ class SavedCkptBlkCfg(OptunaParameterable, DataClassJsonMixin):
         assert path.is_dir(), f"File not found: {path}"
         object.__setattr__(self, "ckpt", select_checkpoint(path=path, best=True))
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "SavedCkptBlkCfg":

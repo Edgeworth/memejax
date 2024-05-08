@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import override
 
 import flax.linen as nn
 import jax.numpy as jnp
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
 
@@ -18,7 +18,7 @@ from memejax.jax.util import JaxArrayMap, JaxArrayOrMap, apply_arrayormap
 class MapInputsBlkCfg(OptunaParameterable, DataClassJsonMixin):
     output_key: str = "x"
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "MapInputsBlkCfg":
@@ -64,7 +64,7 @@ class ConcatBlkCfg(OptunaParameterable, DataClassJsonMixin):
     value: float = 0.0
     times: int = 1
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "ConcatBlkCfg":
@@ -101,7 +101,7 @@ class AxisOpBlkCfg(OptunaParameterable, DataClassJsonMixin):
     op: AxisOp
     axis: int = -1
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "AxisOpBlkCfg":
@@ -144,7 +144,7 @@ class BinOpBlkCfg(OptunaParameterable, DataClassJsonMixin):
     op: BinOp
     value: float = 1.0
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "BinOpBlkCfg":
@@ -187,7 +187,7 @@ class NoopBlk(nn.Module):
 class ReshapeBlkCfg(OptunaParameterable, DataClassJsonMixin):
     shape: tuple[int, ...] = (-1,)
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "ReshapeBlkCfg":
@@ -210,7 +210,7 @@ class ReshapeBlk(nn.Module):
 class MaskBlkCfg(OptunaParameterable, DataClassJsonMixin):
     mask: tuple[float, ...] = ()
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "MaskBlkCfg":

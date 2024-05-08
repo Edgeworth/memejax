@@ -1,12 +1,12 @@
 import copy
 import dataclasses
 from dataclasses import dataclass
+from typing import override
 
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
 import optuna
-import typing_extensions
 from chex import assert_shape
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 from jax import Array
@@ -26,7 +26,7 @@ class ConvBlkCfg(OptunaParameterable, DataClassJsonMixin):
     dense_features: int = 1024
     outputs: Variable
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "ConvBlkCfg":

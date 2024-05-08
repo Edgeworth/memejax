@@ -1,10 +1,9 @@
 import copy
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
+from typing import Any, override
 
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
 
 from memejax.jax.hyperparam.trial import (
@@ -57,7 +56,7 @@ class XgbTrainCfg(OptunaParameterable, DataClassJsonMixin):
     l1_reg: float = 0.0
     l2_reg: float = 1.0
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "XgbTrainCfg":

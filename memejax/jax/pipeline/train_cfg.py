@@ -5,10 +5,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
+from typing import override
 
 import optax
 import optuna
-import typing_extensions
 from dataclasses_json import DataClassJsonMixin, Exclude, Undefined, config, dataclass_json
 from optax import ScalarOrSchedule
 
@@ -85,7 +85,7 @@ class OptimizerCfg(OptunaParameterable, DataClassJsonMixin):
 
     b2: float = 0.999
 
-    @typing_extensions.override
+    @override
     def optuna_params(
         self, trial: optuna.Trial, optuna_cfg: OptunaSearchCfg, prefix: str = ""
     ) -> "OptimizerCfg":
