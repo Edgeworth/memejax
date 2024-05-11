@@ -13,15 +13,15 @@ version = "0.1.0"
 chex = ">=0.1.86"
 cloup = ">=3.0.5"
 clu = ">=0.0.12"
-dataclasses-json = ">=0.6.5"
+dataclasses-json = ">=0.6.6"
 flax = ">=0.8.3"
-jax = {version = ">=0.4.27", source = "jorenham/jax_pep503"}
-jaxlib = {version = ">=0.4.27+cuda12.cudnn89", source = "jorenham/jax_pep503"}
+jax = {version = ">=0.4.28", source = "jorenham/jax_pep503"}
+jaxlib = {version = ">=0.4.28+cuda12.cudnn89", source = "jorenham/jax_pep503"}
 jinja2 = ">=3.1.4"
 numpy = ">=1.26.4"
 optax = ">=0.2.2"
 optuna = ">=3.6.1"
-orbax-checkpoint = ">=0.5.10"
+orbax-checkpoint = ">=0.5.11"
 orbax-export = ">=0.0.4"
 portpicker = ">=1.6.0"
 python = "~3.12"
