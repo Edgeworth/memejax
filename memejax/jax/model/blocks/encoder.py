@@ -60,7 +60,12 @@ class EncoderBlk(nn.Module):
         for num in features:
             x = MlpLayer.from_cfg(cfg=cfg, features=num)(x, train)
 
-        x = MlpLayer(dropout=0.0, features=blk_cfg.bottleneck, layer_norm=cfg.layer_norm)(x, train)
+        x = MlpLayer(
+            dropout=0.0,
+            features=blk_cfg.bottleneck,
+            layer_norm=cfg.layer_norm,
+            activation=cfg.activation,
+        )(x, train)
 
         for num in reversed(features):
             x = MlpLayer.from_cfg(cfg=cfg, features=num)(x, train)

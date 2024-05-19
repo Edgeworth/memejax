@@ -1,16 +1,53 @@
 import copy
 import dataclasses
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, override
 
+import flax.linen as nn
 import optuna
 from dataclasses_json import DataClassJsonMixin, Undefined, dataclass_json
+from jax import Array
+from jax.typing import ArrayLike
 from jinja2 import Template
 
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
 
 Variable = Any
+
+
+class ActivationKind(StrEnum):
+    CELU = "celu"
+    ELU = "elu"
+    GELU = "gelu"
+    LEAKY_RELU = "leaky_relu"
+    LOG_SIGMOID = "log_sigmoid"
+    RELU = "relu"
+    SIGMOID = "sigmoid"
+    SILU = "silu"
+    TANH = "tanh"
+
+    def get_func(self) -> Callable[[ArrayLike], Array]:
+        if self == ActivationKind.CELU:
+            return nn.celu
+        if self == ActivationKind.ELU:
+            return nn.elu
+        if self == ActivationKind.GELU:
+            return nn.gelu
+        if self == ActivationKind.LEAKY_RELU:
+            return nn.leaky_relu
+        if self == ActivationKind.LOG_SIGMOID:
+            return nn.log_sigmoid
+        if self == ActivationKind.RELU:
+            return nn.relu
+        if self == ActivationKind.SIGMOID:
+            return nn.sigmoid
+        if self == ActivationKind.SILU:
+            return nn.silu
+        if self == ActivationKind.TANH:
+            return nn.tanh
+        raise ValueError(f"Unknown activation kind: {self}")
 
 
 @dataclass_json(undefined=Undefined.RAISE)
@@ -20,6 +57,7 @@ class ModelCfg(OptunaParameterable, DataClassJsonMixin):
     dropout: float = 0.5
     input_dropout: float = 0.2
     layer_norm: bool = True
+    activation: ActivationKind = ActivationKind.LEAKY_RELU
 
     def set_variable(self, name: str, value: Any) -> None:
         d = self.variables
@@ -49,6 +87,7 @@ class ModelCfg(OptunaParameterable, DataClassJsonMixin):
                 dropout=trial.suggest_float(prefix + "dropout", 0.0, 1.0, step=0.05),
                 input_dropout=trial.suggest_float(prefix + "input_dropout", 0.0, 1.0, step=0.05),
                 layer_norm=trial.suggest_categorical(prefix + "layer_norm", [True, False]),
+                activation=trial.suggest_categorical(prefix + "activation", list(ActivationKind)),
             )
         return cfg
 

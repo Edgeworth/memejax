@@ -49,7 +49,10 @@ class MlpBlk(nn.Module):
         dropout = cfg.input_dropout
         for _ in range(blk_cfg.num_layers):
             x = MlpLayer(
-                dropout=dropout, features=blk_cfg.dense_features, layer_norm=cfg.layer_norm
+                dropout=dropout,
+                features=blk_cfg.dense_features,
+                layer_norm=cfg.layer_norm,
+                activation=cfg.activation,
             )(x, train)
             dropout = cfg.dropout
 

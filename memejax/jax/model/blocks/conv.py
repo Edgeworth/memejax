@@ -62,9 +62,10 @@ class ConvBlk(nn.Module):
         # conv needs these dimensions: (batch, height, width, channels), so expand dimensions:
         x = x[jnp.newaxis, ..., jnp.newaxis]
 
+        activation = cfg.activation.get_func()
         for _ in range(blk_cfg.conv_layers):
             x = nn.Conv(features=blk_cfg.conv_features, kernel_size=(3, 3))(x)
-            x = nn.leaky_relu(x)
+            x = activation(x)
             x = nn.avg_pool(x, window_shape=(2, 2), strides=(2, 2))
             x = nn.Dropout(rate=cfg.dropout, deterministic=not train)(x)
 

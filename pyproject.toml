@@ -13,19 +13,19 @@ version = "0.1.0"
 chex = ">=0.1.86"
 cloup = ">=3.0.5"
 clu = ">=0.0.12"
-dataclasses-json = ">=0.6.6"
-flax = ">=0.8.3"
-jax = {version = ">=0.4.28", source = "jorenham/jax_pep503"}
-jaxlib = {version = ">=0.4.28+cuda12.cudnn89", source = "jorenham/jax_pep503"}
+dataclasses-json = ">=0.6.7"
+flax = ">=0.8.4"
+jax = {version = ">=0.4.30", source = "jorenham/jax_pep503"}
+jaxlib = {version = ">=0.4.30", source = "jorenham/jax_pep503"}
 jinja2 = ">=3.1.4"
-numpy = ">=1.26.4"
+numpy = ">=1.26.4,<2.0.0"
 optax = ">=0.2.2"
 optuna = ">=3.6.1"
-orbax-checkpoint = ">=0.5.11"
+orbax-checkpoint = ">=0.5.20"
 orbax-export = ">=0.0.4"
 portpicker = ">=1.6.0"
 python = "~3.12"
-typing-extensions = ">=4.11.0"
+typing-extensions = ">=4.12.2"
 
 [[tool.poetry.source]]
 name = "jorenham/jax_pep503"
@@ -35,7 +35,7 @@ url = "https://jorenham.github.io/jax_pep503/"
 [tool.poetry.dev-dependencies]
 mypy = ">=1.10.0"
 poetry-plugin-up = ">=0.7.1"
-pytest = ">=8.2.0"
+pytest = ">=8.2.2"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib", "--tb=native"]
