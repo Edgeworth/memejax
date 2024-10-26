@@ -12,7 +12,7 @@ from jax import Array
 from jax.typing import ArrayLike
 from jinja2 import Template
 
-from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
+from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg, suggest_enum
 
 Variable = Any
 
@@ -87,7 +87,7 @@ class ModelCfg(OptunaParameterable, DataClassJsonMixin):
                 dropout=trial.suggest_float(prefix + "dropout", 0.0, 1.0, step=0.05),
                 input_dropout=trial.suggest_float(prefix + "input_dropout", 0.0, 1.0, step=0.05),
                 layer_norm=trial.suggest_categorical(prefix + "layer_norm", [True, False]),
-                activation=trial.suggest_categorical(prefix + "activation", list(ActivationKind)),
+                activation=suggest_enum(trial, prefix + "activation", ActivationKind),
             )
         return cfg
 

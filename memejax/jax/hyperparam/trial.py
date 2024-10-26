@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 import cloup
 import optuna
@@ -106,10 +106,7 @@ class OptunaParameterable(Protocol):
     ) -> Any: ...
 
 
-_T = TypeVar("_T", bound=StrEnum)
-
-
-def suggest_enum(trial: optuna.Trial, name: str, enum_class: type[_T]) -> _T:
+def suggest_enum[E: StrEnum](trial: optuna.Trial, name: str, enum_class: type[E]) -> E:
     selected_option = trial.suggest_categorical(name, [str(i) for i in enum_class])
     return enum_class(selected_option)
 

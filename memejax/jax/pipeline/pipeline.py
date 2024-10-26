@@ -109,7 +109,7 @@ class JaxPipeline:
                 force_save = True
             saved = self.ckpt_mgr.save(
                 epoch_count,
-                args=ocp.args.StandardSave(self.trainer.save_ckpt()),
+                args=ocp.args.StandardSave(self.trainer.save_ckpt()),  # pyright: ignore[reportCallIssue]
                 metrics=valid_mdict,
                 force=force_save,
             )

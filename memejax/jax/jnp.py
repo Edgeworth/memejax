@@ -42,7 +42,7 @@ def np_pct_diff(arr: npt.NDArray) -> npt.NDArray:
     diffs = np.diff(arr, axis=-1)
     divisor = arr[..., :-1]
     divisor = np.where(divisor == 0.0, divisor + 1e-8, divisor)
-    return np.divide(diffs, divisor)
+    return cast(npt.NDArray, np.divide(diffs, divisor))
 
 
 @jax.jit

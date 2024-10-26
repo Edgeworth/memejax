@@ -1,41 +1,40 @@
 [project]
+authors = [{name = "Eliot Courtney", email = "edgeworth.dev@gmail.com"}]
+description = "memejax"
+dynamic = ["dependencies"]
+license = {text = "GPL-3.0-only"}
 name = "memejax"
+requires-python = ">=3.13,<4.0"
 version = "0.1.0"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
 
 [tool.poetry]
-authors = ["Eliot Courtney <edgeworth.dev@gmail.com>"]
-classifiers = ["License :: OSI Approved :: GPL-3.0-only"]
-description = "memejax"
-name = "memejax"
-version = "0.1.0"
+packages = [{include = "memejax"}]
 
 [tool.poetry.dependencies]
-chex = ">=0.1.86"
-cloup = ">=3.0.5"
+chex = ">=0.1.91"
+cloup = ">=3.0.8"
 clu = ">=0.0.12"
 dataclasses-json = ">=0.6.7"
-flax = ">=0.8.4"
-jax = {version = ">=0.4.30", source = "jorenham/jax_pep503"}
-jaxlib = {version = ">=0.4.30", source = "jorenham/jax_pep503"}
-jinja2 = ">=3.1.4"
-numpy = ">=1.26.4,<2.0.0"
-optax = ">=0.2.2"
-optuna = ">=3.6.1"
-orbax-checkpoint = ">=0.5.20"
-orbax-export = ">=0.0.4"
+flax = ">=0.11.2"
+jax = {version = ">=0.7.1", extras = ["cuda"]}
+jaxlib = {version = ">=0.7.1"}
+jinja2 = ">=3.1.6"
+optax = ">=0.2.5"
+optuna = ">=4.5.0"
+orbax-checkpoint = ">=0.11.24"
+orbax-export = ">=0.0.7"
 portpicker = ">=1.6.0"
-python = "~3.12"
-typing-extensions = ">=4.12.2"
+tensorflow = "^2.20.0"
+typing-extensions = ">=4.15.0"
 
-[[tool.poetry.source]]
-name = "jorenham/jax_pep503"
-priority = "supplemental"
-url = "https://jorenham.github.io/jax_pep503/"
-
-[tool.poetry.dev-dependencies]
-mypy = ">=1.10.0"
-poetry-plugin-up = ">=0.7.1"
-pytest = ">=8.2.2"
+[tool.poetry.group.dev.dependencies]
+mypy = ">=1.17.1"
+poetry-plugin-up = ">=0.9.0"
+pytest = ">=8.4.2"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib", "--tb=native"]
@@ -65,7 +64,7 @@ warn_unused_ignores = true
 show_error_codes = true
 
 # Set python version.
-python_version = '3.12'
+python_version = '3.13'
 
 [[tool.mypy.overrides]]
 ignore_missing_imports = true
@@ -78,11 +77,12 @@ module = [
   "portpicker.*",
   "tensorflow.*",
   "json5.*",
+  "chex.*",
 ]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.format]
 # Make sure lists etc can go back onto one line if they get shorter.
@@ -91,8 +91,6 @@ skip-magic-trailing-comma = true
 [tool.ruff.lint]
 ignore = [
   "A003", # allow attribute shadowing builtins 'eval', 'sorted' etc
-  "ANN101", # no need to annotate self
-  "ANN102", # no need to annotate cls self
   "ANN401", # allow Any type annotation
   "BLE001", # allow except Exception
   "C901", # ignore too complex code
@@ -115,6 +113,7 @@ ignore = [
   "PD901", # allow 'df'
   "PLR0912", # allow more branches in functions
   "PLR0913", # allow more arguments in functions
+  "PLR0915", # allow more statements in functions
   "PLR2004", # allow magic numbers
   "PYI021", # allow docstrings in stubs
   "RET504", # allow return statements after assignment of variable

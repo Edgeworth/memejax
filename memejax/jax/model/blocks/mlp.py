@@ -63,5 +63,5 @@ class MlpBlk(nn.Module):
         return x
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)

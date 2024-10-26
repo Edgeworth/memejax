@@ -5,7 +5,7 @@ from typing import Any, cast
 import jax
 import jax.numpy as jnp
 from flax import struct
-from flax.core.scope import VariableDict
+from flax.typing import VariableDict
 from jax import Array
 from jax.typing import ArrayLike
 
@@ -42,7 +42,7 @@ class MetricCollection:
 
 def get_local_mdict(dmdict: DeviceMetricDict) -> LocalMetricDict:
     dmdict = jax.device_get(dmdict)
-    mdict: LocalMetricDict = jax.tree_map(lambda x: x.item(), dmdict)
+    mdict: LocalMetricDict = jax.tree.map(lambda x: x.item(), dmdict)
     return mdict
 
 
@@ -153,7 +153,7 @@ def jnp_add_dmdicts(a: DeviceMetricDict, b: DeviceMetricDict) -> DeviceMetricDic
         return b
     if len(b) == 0:
         return a
-    return cast(DeviceMetricDict, jax.tree_map(jnp.add, a, b))
+    return cast(DeviceMetricDict, jax.tree.map(jnp.add, a, b))
 
 
 def slow_add_mdicts(

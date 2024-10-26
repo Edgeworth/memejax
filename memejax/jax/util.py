@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, cast
 
 import chex
 import jax
@@ -8,7 +8,7 @@ import portpicker
 from jax import Array, config
 
 JaxArrayMap = dict[str, Array]
-JaxArrayOrMap = TypeVar("JaxArrayOrMap", Array, JaxArrayMap)
+JaxArrayOrMap = Array | JaxArrayMap
 JaxModelOutput = Any
 
 
@@ -52,12 +52,12 @@ def jax_enable_debug(enable: bool = True, check_leaks: bool = False) -> None:
     enable_chexify()
 
 
-def apply_arrayormap(
-    x: JaxArrayOrMap, train: bool, f: Callable[[str, Array, bool], Array]
-) -> JaxArrayOrMap:
+def apply_arrayormap[T: JaxArrayOrMap](
+    x: T, train: bool, f: Callable[[str, Array, bool], Array]
+) -> T:
     if isinstance(x, dict):
-        return {k: f(k, v, train) for k, v in x.items()}
-    return f("array", x, train)
+        return cast(T, {k: f(k, v, train) for k, v in x.items()})
+    return cast(T, f("array", x, train))
 
 
 def maybe_chexify(fn: Callable[..., Any]) -> Callable[..., Any]:

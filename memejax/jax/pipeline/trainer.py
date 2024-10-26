@@ -9,8 +9,8 @@ import jax
 import jax.numpy as jnp
 import optax
 from flax import struct
-from flax.core.scope import VariableDict
 from flax.training import train_state
+from flax.typing import VariableDict
 from jax import Array
 from jax.typing import ArrayLike
 
@@ -84,12 +84,12 @@ class JaxTrainer:
         # If there is no info on how to map each part of the input, assume it
         # should all be mapped over the first axis.
         if vmap_in is None:
-            vmap_in = jax.tree_map(lambda _: 0, batched_inp)
+            vmap_in = jax.tree.map(lambda _: 0, batched_inp)
 
         return nn.vmap(
             model_cls,
             # (map data according to vmap_in, don't map 'train' var)
-            in_axes=(vmap_in, None),
+            in_axes=(vmap_in, None),  # pyright: ignore[reportArgumentType]
             out_axes=0,
             # Keep variables the same between samples in the batch.
             variable_axes={"params": None, "batch_stats": None, "meta": None},
@@ -134,9 +134,7 @@ class JaxTrainer:
         params = variables.get("params", {})
         batch_stats = variables.get("batch_stats", {})
 
-        param_count = jax.tree_util.tree_reduce(
-            lambda x, y: jnp.add(x, y.size), params, jnp.array(0)
-        )
+        param_count = jax.tree.reduce(lambda x, y: jnp.add(x, y.size), params, jnp.array(0))
         print(f"Training model with {param_count} parameters.")
 
         self.rng, rng = jax.random.split(rng)
@@ -201,8 +199,8 @@ class JaxTrainer:
                 )
 
         if opt_cfg.reg != "none":
-            reg_params = jax.tree_map(reg_fn, variables["params"])
-            dmdict["loss"] += jnp.array(jax.tree_util.tree_leaves(reg_params)).sum()
+            reg_params = jax.tree.map(reg_fn, variables["params"])
+            dmdict["loss"] += jnp.array(jax.tree.leaves(reg_params)).sum()
 
         return dmdict
 
@@ -242,14 +240,14 @@ class JaxTrainer:
     @staticmethod
     @jax.jit
     def _check_grads_zero(grads: JaxArrayMap) -> Array:
-        return jax.tree_util.tree_reduce(
+        return jax.tree.reduce(
             lambda x, y: jnp.logical_and(x, jnp.allclose(y, 0.0)), grads, jnp.array(True)
         )
 
     @staticmethod
     @jax.jit
     def _check_param_range(state: JaxTrainState) -> tuple[Array, Array]:
-        return jax.tree_util.tree_reduce(
+        return jax.tree.reduce(
             lambda x, y: (
                 jax.lax.min(x[0], jnp.min(y.reshape(-1))),
                 jax.lax.max(x[1], jnp.max(y.reshape(-1))),
@@ -261,7 +259,7 @@ class JaxTrainer:
     @staticmethod
     @jax.jit
     def _check_grad_range(grads: JaxArrayMap) -> tuple[Array, Array]:
-        return jax.tree_util.tree_reduce(
+        return jax.tree.reduce(
             lambda x, y: (
                 jax.lax.min(x[0], jnp.min(y.reshape(-1))),
                 jax.lax.max(x[1], jnp.max(y.reshape(-1))),

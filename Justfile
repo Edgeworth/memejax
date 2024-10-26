@@ -9,8 +9,14 @@ default:
   poetry run pytest --pyargs memejax
 
 update:
-  # TODO(2): unexclude numpy
-  poetry run poetry up --latest --exclude=numpy
+  poetry run poetry up --latest
   poetry update
   pre-commit autoupdate
+
+check:
+  poetry check
+  poetry run mypy --install-types --non-interactive
+  pre-commit run --all-files
+
+fix:
   pre-commit run --all-files

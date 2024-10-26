@@ -56,7 +56,8 @@ class JaxCkptInference:
     def _array_map_to_input_signature(self, data: JaxArrayMap) -> Any:
         # Include a polymorphic batch dimension.
         data_signature = {
-            k: tf.TensorSpec([None, *v.shape[1:]], v.dtype, name=k) for k, v in data.items()
+            k: tf.TensorSpec([None, *v.shape[1:]], v.dtype, name=k)  # pyright: ignore[reportCallIssue]
+            for k, v in data.items()
         }
         return [data_signature]
 
@@ -93,11 +94,11 @@ class JaxCkptInference:
         ]
         if tf.executing_eagerly():
             export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
-            export_mgr.save(path)
+            export_mgr.save(path.as_posix())
         else:
-            assert (
-                extra_trackable_resources is not None
-            ), "extra_trackable_resources required for graph mode"
+            assert extra_trackable_resources is not None, (
+                "extra_trackable_resources required for graph mode"
+            )
             graph = (
                 extra_trackable_resources[0].graph
                 if extra_trackable_resources
@@ -107,10 +108,10 @@ class JaxCkptInference:
                 # Run initializers
                 if extra_trackable_resources:
                     sess.run([v.initializer for v in extra_trackable_resources])
-                sess.run([v.initializer for v in jax_module.variables])
+                sess.run([v.initializer for v in jax_module.variables])  # pyright: ignore[reportAttributeAccessIssue]
 
                 export_mgr = ExportManager(jax_module, serving_configs=serving_configs)
-                export_mgr.save(path)
+                export_mgr.save(path.as_posix())
 
 
 class JaxSavedModelInference:

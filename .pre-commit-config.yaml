@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: check-ast # check python syntax
       - id: check-docstring-first # check for docstring after code
@@ -24,33 +24,11 @@ repos:
       - id: trailing-whitespace # trims trailing whitespace.
   # Python related hooks:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.12.12
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.12.12
     hooks:
       - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          [
-            chex,
-            cloup,
-            clu,
-            dataclasses-json,
-            flax,
-            jax,
-            jaxlib,
-            jinja2,
-            numpy,
-            optax,
-            optuna,
-            orbax-checkpoint,
-            orbax-export,
-            portpicker,
-            typing-extensions,
-          ]

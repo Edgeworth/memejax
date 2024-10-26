@@ -87,7 +87,6 @@ class TransformerBlk(nn.Module):
         # d_emb) having all the d_emb values as the same value. TODO(2): work
         # out a better way to do this.
         x = jnp.zeros([*x.shape, blk_cfg.d_emb]) + x[..., jnp.newaxis]
-        # x = jax.vmap(lambda x: PositionalEmbedding(learnable=False)(x, train))(x)
         x = PosEmbBlk(cfg=cfg, blk_cfg=PosEmbBlkCfg(learnable=False))(x, train)
 
         # Now apply transformer layers.

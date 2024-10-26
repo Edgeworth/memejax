@@ -140,7 +140,7 @@ class OptimizerCfg(OptunaParameterable, DataClassJsonMixin):
             case ScheduleKind.CONSTANT:
                 return self.lr
             case ScheduleKind.COSINE:
-                warmup_steps = 0.05 * self.decay_steps
+                warmup_steps = int(0.05 * self.decay_steps)
                 return optax.warmup_cosine_decay_schedule(
                     # Also start with the final learning rate.
                     init_value=self.decay_end_lr,
@@ -150,7 +150,7 @@ class OptimizerCfg(OptunaParameterable, DataClassJsonMixin):
                     end_value=self.decay_end_lr,
                 )
             case ScheduleKind.EXPONENTIAL:
-                warmup_steps = 0.05 * self.decay_steps
+                warmup_steps = int(0.05 * self.decay_steps)
                 decay_rate = self.decay_end_lr / self.lr
                 transition_steps = self.decay_steps - warmup_steps
                 return optax.warmup_exponential_decay_schedule(

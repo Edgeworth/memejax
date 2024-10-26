@@ -53,7 +53,7 @@ class SoftmaxBlk(nn.Module):
         return x
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)
 
 
@@ -80,7 +80,7 @@ class ConcatBlk(nn.Module):
         return x
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)
 
 
@@ -125,7 +125,7 @@ class AxisOpBlk(nn.Module):
                 return jnp.min(x, axis=self.blk_cfg.axis)
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)
 
 
@@ -170,7 +170,7 @@ class BinOpBlk(nn.Module):
                 return jnp.log(x) / jnp.log(self.blk_cfg.value)
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)
 
 
@@ -178,7 +178,7 @@ class NoopBlk(nn.Module):
     blk_cfg: EmptyBlkCfg
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, _train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, _train: bool) -> T:
         return inp
 
 
@@ -201,7 +201,7 @@ class ReshapeBlk(nn.Module):
         return x.reshape(self.blk_cfg.shape)
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)
 
 
@@ -224,5 +224,5 @@ class MaskBlk(nn.Module):
         return x * jnp.array(self.blk_cfg.mask)
 
     @nn.compact
-    def __call__(self, inp: JaxArrayOrMap, train: bool) -> JaxArrayOrMap:
+    def __call__[T: JaxArrayOrMap](self, inp: T, train: bool) -> T:
         return apply_arrayormap(inp, train, self.apply_array)

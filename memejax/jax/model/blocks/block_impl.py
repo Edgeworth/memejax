@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import TypeAlias
 
 import flax.linen as nn
 from dataclasses_json import DataClassJsonMixin
@@ -39,7 +38,7 @@ from memejax.jax.model.blocks.saved_ckpt import SavedCkptBlk, SavedCkptBlkCfg
 from memejax.jax.model.blocks.saved_model import SavedModelBlk, SavedModelBlkCfg
 from memejax.jax.model.blocks.transformer import TransformerBlk, TransformerBlkCfg
 
-BlkCfgType: TypeAlias = (
+type BlkCfgType = (
     CompoundBlkCfg
     | ConcatBlkCfg
     | ConvBlkCfg

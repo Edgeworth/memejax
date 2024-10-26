@@ -8,7 +8,7 @@ import flax.linen as nn
 import jax
 import optuna
 from dataclasses_json import DataClassJsonMixin, Undefined, config, dataclass_json
-from flax.core.scope import VariableDict
+from flax.typing import VariableDict
 
 from memejax.common import dataclass_has_field
 from memejax.jax.hyperparam.trial import OptunaParameterable, OptunaSearchCfg
@@ -36,7 +36,7 @@ class CompoundItem(DataClassJsonMixin):
     is_output: bool = False
 
     def __post_init__(self) -> None:
-        from memejax.jax.model.blocks.block_impl import blk_kind_cfg_class
+        from memejax.jax.model.blocks.block_impl import blk_kind_cfg_class  # noqa: PLC0415
 
         if isinstance(self.blk_cfg, dict):
             # Work around frozen, but we need hash.
@@ -110,7 +110,7 @@ class CompoundBlk(nn.Module):
         model_output: CompoundBlkData,
         aux: JaxArrayMap,
     ) -> MetricCollectionMap:
-        from memejax.jax.model.blocks.block_impl import blk_kind_model_class
+        from memejax.jax.model.blocks.block_impl import blk_kind_model_class  # noqa: PLC0415
 
         metrics = {}
         results = {**model_output, "aux": aux}
@@ -126,7 +126,7 @@ class CompoundBlk(nn.Module):
 
     @nn.compact
     def __call__(self, x: JaxArrayMap, train: bool) -> CompoundBlkData:
-        from memejax.jax.model.blocks.block_impl import blk_kind_model_class
+        from memejax.jax.model.blocks.block_impl import blk_kind_model_class  # noqa: PLC0415
 
         ts: TopologicalSorter = TopologicalSorter()
         blks = {blk.name: blk for blk in self.blk_cfg.blks}
